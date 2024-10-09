@@ -39,6 +39,14 @@ class SineWaveWAV:
         # No phase provided, essentially + 0
         sine_wave = self.fourth_amplitude * np.sin(2 * np.pi * self.frequency * time_points)
 
+        # Since sine_wave could have floats, convert wave values to 16 bit intgers to follow
+        # specification (sample format states 16 bit signed to write to WAV file)
+        wav_sine_wave = sine_wave.astype(np.int16)
+
+        print("Writing sine.wav to current directory...")
+        write('sine.wav', self.sample_rate, wav_sine_wave)
+        print("Write Successful")
+
 if __name__ == "__main__":
     wav = SineWaveWAV()
     # (1) create sine.wav
