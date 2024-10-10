@@ -26,9 +26,15 @@ continuous flow of the sine wave. Using `numpy.linspace`, it generates a time ar
 ranging from 0 to the duration (1 second). Next, two arrays, one for each WAV file, use this time array, along with their respective amplitudes, frequency, and the `sin()` function, to generate a sample collection imitating a continuous sine wave.
 
 The sine wave arrays are then cast to 16-bit signed integers to adhere to the expected WAV format, then written to
-[`sine.wav`](https://github.com/sakuttomon/CS416-Sound/blob/main/code/clipped/sine.wav) and
-[`clipped.wav`](https://github.com/sakuttomon/CS416-Sound/blob/main/code/clipped/clipped.wav). Finally, the
-program plays the sine wave from `clipped.wav` directly to computer audio output, as per the assignment plan.
+[`sine.wav`](sine.wav) and [`clipped.wav`](clipped.wav). Finally, the program plays the sine wave from `clipped.wav`
+directly to computer audio output, as per the assignment plan.
+
+### Resulting WAVs
+
+Importing the two files into Audacity, notice how the sine wave from `clipped.wav` appears flattened at the -0.25 and 0.25
+coordinates when compared to `sine.wav`, showcasing the effects of clipping a 1/2 amplitude sine wave to a limit of 1/4.
+
+![Screenshot in Audacity showing the sine waves of clipped.wav and sine.wav](sine-wave-visual.png)
 
 ## How it went
 
