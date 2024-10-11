@@ -52,3 +52,16 @@ wave by sampling its behavior, achieved by applying the `sin()` function and the
 files raised my confidence, so programming went smoothly after transcending the initial knowledge barrier.
 
 ## What is still to be done
+
+Audacity is a helpful external tool to visualize the sine waves, but the program could benefit from some sort of metadata
+comparison to reveal any similarities and differences between the two WAV files. This comparison can also reveal if the
+WAV file data correctly matches up to the expected specifications, such as `clipped.wav` values maxing out at 1/4 amplitude
+despite being calculated at 1/2 amplitude.
+
+Additionally, variables defining the sine wave specifications are hard-coded to what the assignment asks for. An improvement
+to make this program more flexible is to allow passing in different values for frequency, duration, sample rate, etc.
+through user input. This freedom would allow for experimenting with different digital audio concepts and see how it affects
+a simple sine wave.
+
+These suggusted extensions are not required for the assignment, but are nonetheless useful for expanding understanding
+of sampling and testing principles like the Nyquist Limit.
