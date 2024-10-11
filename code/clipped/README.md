@@ -38,4 +38,17 @@ coordinates when compared to `sine.wav`, showcasing the effects of clipping a 1/
 
 ## How it went
 
+Although the program is short, most of the time spent working on this assignment was dedicated to fully understanding
+the underlying concepts of digital audio. Initially, it was confusing to figure out how to begin, due to a lack of
+visual understanding of how "generating a sine wave" to an array would look like.
+
+To make up for this, attributing terminology learned from class and research to the assignment specifications
+helped me realize what to translate to code. For example, learning of the term discretization ignited the notion
+that array elements are meant to serve as snapshots in time. The goal to mimic a smooth, continuous flow with discrete
+values also highlighted the necessity to equally space apart these points, hence leading to the use of `numpy.linspace`.
+
+Furthermore, linking the term "sampling" to "generating a sine wave" reinforced this imitation strategy: mimic a sine
+wave by sampling its behavior, achieved by applying the `sin()` function and the [sine wave formula](https://en.wikipedia.org/wiki/Sine_wave#Sinusoid_form) to each time point. Learning these relations and how each operation contributes to creating the WAV
+files raised my confidence, so programming went smoothly after transcending the initial knowledge barrier.
+
 ## What is still to be done
