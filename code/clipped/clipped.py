@@ -18,12 +18,6 @@ class SineWaveWAV:
 
         self.half_amplitude = self.fourth_amplitude * 2    # 1/2 16-bit amplitude (values in the range -16384..16384)
 
-        # Although sine wave is a continuous function, digital audio must discretize / take
-        # snapshots of the audio signal, hence sample rate to capture samples of audio
-
-        # Digital Audio Basics... by Griffin Brown
-        # https://www.izotope.com/en/learn/digital-audio-basics-sample-rate-and-bit-depth.html
-
         # Construct equally spaced time points array (separated apart by 1/sample rate)
         # Duration of Sine Wave is 1 second, sample rate is per second, 
         # so we generate 48000 * 1 sample points to fit in that duration. 
