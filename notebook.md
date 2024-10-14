@@ -3,6 +3,12 @@
 A document containing notes or reflections about the work and progress done throughout the course, organized by each week and
 the estimated date where such activities occured or finished.
 
+| Table of Contents |
+| ----------------- |
+| [Week 1](#week-1) |
+| [Week 2](#week-2) |
+| [Week 3](#week-3) |
+
 ## Week 1
 
 ### 10/1/24 - Beginning
@@ -52,7 +58,8 @@ while also feeling relevant to my field of study.
 
 This week involved various video lectures introducing many concepts. Notes and takeaways are organized per video topic below.
 
-**Musical Notes**  
+#### Musical Notes
+
 _Note_ - Sound with a given fixed frequency "value". Starts at a time (_on time_) and ends at duration (_off time_). Notes can overlap (_polyphony_).  
 _Octave_ - Frequency that is 2x some other frequency. **Divided into 12 parts**; since humans hear frequencies on a logarithmic scale, a given part looks like:
 
@@ -63,3 +70,5 @@ _Ex_: The first note (i=0) simply equals `f`, whilst a note an octave up (i=12),
 Base Frequency for a Note: 440 Hz _(Western Scale)_  
 [MIDI Key Numbering](https://studiocode.dev/resources/midi-middle-c/) - Based on piano keys. _Ex_: 440Hz A = Key 69, A4, in Octave 4.  
 Notes given letter names with **Sharp** (`#`) or **Flat** (`♭`) modifier.
+
+#### FIR Filters
