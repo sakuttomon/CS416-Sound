@@ -39,3 +39,13 @@ filters to reduce frequencies smoothly and preserve the slopes of the original w
 | Distorts shape due to flattening wave at limits | Attempts to preserve shape of the signal's tone               |
 
 ## Week 3
+
+### 10/14/24 - Saying Hi in Zulip
+
+Wrote an introduction of myself to share in the course [Zulip](https://zulip.com/). In this introduction, I expressed my inexperience
+with sound and digital audio concepts, so the course appealed to me as a way to start establishing the basics. I mentioned interests
+in "behind-the-scenes" content of media, but sound and music is a field I've yet to dive deep in. So, this class focused on the
+interactions between computers and audio seemed like a perfect motive to start learning this hobby topic and make some fun projects,
+while also feeling relevant to my field of study.
+
+### 10/18/24 - Notes: Understanding Frequency
