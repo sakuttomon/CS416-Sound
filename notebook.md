@@ -71,4 +71,11 @@ Base Frequency for a Note: 440 Hz _(Western Scale)_
 [MIDI Key Numbering](https://studiocode.dev/resources/midi-middle-c/) - Based on piano keys. _Ex_: 440Hz A = Key 69, A4, in Octave 4.  
 Notes given letter names with **Sharp** (`#`) or **Flat** (`♭`) modifier.
 
-#### FIR Filters
+#### Digital Audio Filtering
+
+_Filter_ - Change amplitude or phase to emphasize or de-emphasize frequencies. E.g. tone control, equalizer, band limiter, etc.  
+_Filter Shapes_ - Low Pass, High Pass, Bandpass, Band Notch. [Audio Filters Explained](https://www.edmprod.com/audio-filters/)  
+_Passband, Stopband_ - Frequences that pass by the filter, otherwise blocked or rejected.
+
+In **time domain**, samples are numbered, sampling rate often discarded. Amplitude normalized to -1..1  
+Frequency Domain: Frequencies range from 0..1 (Nyquist Limit).
