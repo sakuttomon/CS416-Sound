@@ -30,9 +30,7 @@ process of capturing "samples" from the signal. The sample rate determines the i
 rate, computers essentially replicate the analog wave by having so many sample points that it appears as a connected line when
 visualized. Each sample serves as a data point that builds up the overall shape of the wave when played back.
 
-The [Nyquist Limit](https://www.slack.net/~ant/bl-synth/3.nyquist.html) expands on the intricacies of audio-to-digital conversion by
-limiting the frequency to half the sample rate (conversely, the rate must be double the frequency) to prevent aliasing distortions.
-A sample rate of 48,000 Hz is standard for movie and video audio.
+The [Nyquist Limit](https://www.slack.net/~ant/bl-synth/3.nyquist.html) - Maximum frequency equals half the sample rate (conversely, the rate must be double the frequency) to prevent aliasing distortions. A sample rate of 48,000 Hz is standard for movie and video audio.
 
 The article explains that humans hear frequencies up to around 20 kHz. However, instead of simply doubling the sample rate to 40 kHz,
 an extra few kHz is reserved in order to apply a [low-pass filter](https://en.wikipedia.org/wiki/Low-pass_filter) to reduce high
@@ -58,6 +56,27 @@ while also feeling relevant to my field of study.
 
 This week involved various video lectures introducing many concepts. Notes and takeaways are organized per video topic below.
 
+#### Frequency Domain and Fourier Transform
+
+_Fourier's Theorem_ - Infinitely repeating sound can be represented as a sum of sinusoids (which hearing decomposes to).  
+Angular Frequency (`ω`) and normal frequency (`f`) mixed via: **$ \omega = 2 \pi f $**, once around a circle = one cycle.
+
+- Continuous waveform $f(t)$ in the **time domain**.
+- Continuous spectrum $\hat{f}(\omega)$ in the **frequency domain**, shows amplitude and phase of sine wave
+  at every frequency.
+
+[Euler's Formula](https://en.wikipedia.org/wiki/Euler%27s_formula) allows expressing sum of sinusoids to sum of exponentials.
+
+Application of [Fourier Transform](https://en.wikipedia.org/wiki/Fourier_transform) - Take time domain signal and multiply it by sine
+waves integrated throughout all the time. Possible weirdness due to infinite domain for integral. Because frequency measured in radians (one cycle = $ 2\pi $), other way around is near inverse. Conversions between signal of frequences and signal of time points:
+
+$$
+\hat{f}(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i \omega t} dt \qquad
+f(t) = \frac{1}{2 \pi} \int_{-\infty}^{\infty} \hat{f}(\omega) e^{i \omega t} d\omega
+$$
+
+#### Discrete Fourier Transform
+
 #### Musical Notes
 
 _Note_ - Sound with a given fixed frequency "value". Starts at a time (_on time_) and ends at duration (_off time_). Notes can overlap (_polyphony_).  
@@ -77,5 +96,5 @@ _Filter_ - Change amplitude or phase to emphasize or de-emphasize frequencies. E
 _Filter Shapes_ - Low Pass, High Pass, Bandpass, Band Notch. [Audio Filters Explained](https://www.edmprod.com/audio-filters/)  
 _Passband, Stopband_ - Frequences that pass by the filter, otherwise blocked or rejected.
 
-In **time domain**, samples are numbered, sampling rate often discarded. Amplitude normalized to -1..1  
+In **time domain**, samples are numbered, sampling rate often disregarded. Amplitude normalized to -1..1  
 Frequency Domain: Frequencies range from 0..1 (Nyquist Limit).
