@@ -78,12 +78,13 @@ $$
 
 #### Discrete Fourier Transform
 
-Use limits to rid of infinite integrals, and take out a chunk out of the infinitely repeating sequence to mark as the period `P`:
+Use limits to rid of infinite integrals, and take out a chunk out of the infinitely repeating sequence and mark as the period $P$:
 $$\hat{f}(\omega) = \int_{0}^{P} f(t) e^{-i \omega t} dt$$
 
 Since $P$ is unknown, take a very large value to capture signals with long periods. Moreover, $f(t)$ is also unknown since it's a
 continuous time signal when we have **discrete samples**. By treating the signal as 0 for all places except the discrete sample
-points, can express $f(t)$ as a sequence of samples and compute at discrete frequences $k$.
+points, can express $f(t)$ as a [sum of samples](https://betterexplained.com/articles/an-interactive-guide-to-the-fourier-transform/)
+and compute at discrete frequences $k$.
 
 - $X[k]$ is frequency domain representation, each $k$ corresponds to a frequency bin, showing the amplitude and phase of the signal at that particular frequency.
 - $x[n]$ is time domain, where $n$ represents a sample at a discrete time point.
@@ -92,6 +93,34 @@ $$
 X[k] = \sum_{n=0}^{N-1} x[n] e^{-i k n / N} \qquad
 x[n] = \frac{1}{2 \pi N} \sum_{k=0}^{N-1} X[k] e^{i k n / N}
 $$
+
+#### Applying the DFT
+
+Above DFT formulas assume $N$ samples cover exactly one period of the overall signal: $x[n]$ _is cyclic, where $x$ is exactly the period._
+
+_Windowing_ - Taper off signal by multiplying ends of DFT by [window function](https://en.wikipedia.org/wiki/Window_function) (bell-curve shape). Acts as a low-pass filter due to filtering signal at ends.  
+_Ex_: Sine Window - $sin(\pi n / N) x[n]$
+
+Bins "[leak](https://wiki.besa.de/index.php?title=File:Spectral_%285%29.gif)" to neighboring bins, so amplitude of a bin may not
+fully represent the frequency of the bin. DFT thus look like overlapped [Gaussian Filters](https://en.wikipedia.org/wiki/Gaussian_filter).
+
+_Fast Fourier Transform_ - $O(N \lg N)$ performance compared to DFT $O(N^2)$, used to obtain whole spectrum, requires power-of-two
+number of samples and output frequencies distributed linearly.
+
+_Discrete Cosine Transformation_ - Similar to FFT, but gives only magnitudes, ignores phase information since amplitude is much more
+valuable, used in compression and processing (`MPEG`).
+
+_[Triangle](https://en.wikipedia.org/wiki/Triangle_wave) and [Square](https://en.wikipedia.org/wiki/Square_wave) Waves_ - Fundamental + odd harmonics.  
+_Harmonic_ - Multiple of a fundamental. E.g. odd harmonic of $f$ appear at $3f$, $5f$, etc.
+
+- _Total Harmonic Distortion_ - Sine wave input, measure power of non-sine wave components that come out due to distortion.
+- _White Noise_ - Random samples, random frequencies of random amplitudes, resulting in irregular distribution of spectrum.
+
+DFT Applications:
+
+- _Frequency Analysis_ - Look for peaks in spectrum post-DFT.
+- _Filtering_ - Change frequencies post-DFT, then perform inverse DFT, resulting in tone-controlled signal.
+- _Lossy Compression_ - Remove unwanted stuff post-DFT.
 
 #### Musical Notes
 
@@ -114,3 +143,5 @@ _Passband, Stopband_ - Frequences that pass by the filter, otherwise blocked or 
 
 In **time domain**, samples are numbered, sampling rate often disregarded. Amplitude normalized to -1..1  
 Frequency Domain: Frequencies range from 0..1 (Nyquist Limit).
+
+#### FIR Filters
