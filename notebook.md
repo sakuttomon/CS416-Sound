@@ -68,7 +68,8 @@ Angular Frequency (`ω`) and normal frequency (`f`) mixed via: **$ \omega = 2 \p
 [Euler's Formula](https://en.wikipedia.org/wiki/Euler%27s_formula) allows expressing sum of sinusoids to sum of exponentials.
 
 Application of [Fourier Transform](https://en.wikipedia.org/wiki/Fourier_transform) - Take time domain signal and multiply it by sine
-waves integrated throughout all the time. Possible weirdness due to infinite domain for integral. Because frequency measured in radians (one cycle = $ 2\pi $), other way around is near inverse. Conversions between signal of frequences and signal of time points:
+waves integrated throughout all the time. **Unpractical due to infinite domain for integral**. Because frequency measured in
+radians (one cycle = $ 2\pi $), other way around is near inverse. Conversions between signal of frequences and signal of time points:
 
 $$
 \hat{f}(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i \omega t} dt \qquad
@@ -76,6 +77,21 @@ f(t) = \frac{1}{2 \pi} \int_{-\infty}^{\infty} \hat{f}(\omega) e^{i \omega t} d\
 $$
 
 #### Discrete Fourier Transform
+
+Use limits to rid of infinite integrals, and take out a chunk out of the infinitely repeating sequence to mark as the period `P`:
+$$\hat{f}(\omega) = \int_{0}^{P} f(t) e^{-i \omega t} dt$$
+
+Since $P$ is unknown, take a very large value to capture signals with long periods. Moreover, $f(t)$ is also unknown since it's a
+continuous time signal when we have **discrete samples**. By treating the signal as 0 for all places except the discrete sample
+points, can express $f(t)$ as a sequence of samples and compute at discrete frequences $k$.
+
+- $X[k]$ is frequency domain representation, each $k$ corresponds to a frequency bin, showing the amplitude and phase of the signal at that particular frequency.
+- $x[n]$ is time domain, where $n$ represents a sample at a discrete time point.
+
+$$
+X[k] = \sum_{n=0}^{N-1} x[n] e^{-i k n / N} \qquad
+x[n] = \frac{1}{2 \pi N} \sum_{k=0}^{N-1} X[k] e^{i k n / N}
+$$
 
 #### Musical Notes
 
