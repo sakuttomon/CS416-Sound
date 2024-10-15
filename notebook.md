@@ -145,3 +145,12 @@ In **time domain**, samples are numbered, sampling rate often disregarded. Ampli
 Frequency Domain: Frequencies range from 0..1 (Nyquist Limit).
 
 #### FIR Filters
+
+_Impulse_ - Sample that has maximum amplitude for exactly 1 sample, then 0s afterward.  
+_Finite Impulse Response_ - DFT filter would treat impulses identically. When pulse leaves impulse window, DFT would stay 0 forever.
+Impulses presented to the filter eventually go away in favor of the 0s.
+
+_IIR Filter_ - Infinite Impulse Response, use previous filter inputs/outputs to decide next filter output. Preserves impulses in
+output and contribute to next chunk to filter due to looping the impulse back into the (previous) input.
+
+- Ideally reduces amplitude of impulse over time - _stable filter_
