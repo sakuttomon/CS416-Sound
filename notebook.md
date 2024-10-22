@@ -8,6 +8,7 @@ the estimated date where such activities occured or finished.
 | [Week 1](#week-1) |
 | [Week 2](#week-2) |
 | [Week 3](#week-3) |
+| [Week 4](#week-4) |
 
 ## Week 1
 
@@ -68,8 +69,9 @@ Angular Frequency (`ω`) and normal frequency (`f`) mixed via: **$ \omega = 2 \p
 [Euler's Formula](https://en.wikipedia.org/wiki/Euler%27s_formula) allows expressing sum of sinusoids to sum of exponentials.
 
 Application of [Fourier Transform](https://en.wikipedia.org/wiki/Fourier_transform) - Take time domain signal and multiply it by sine
-waves integrated throughout all the time. **Unpractical due to infinite domain for integral**. Because frequency measured in
-radians (one cycle = $ 2\pi $), other way around is near inverse. Conversions between signal of frequences and signal of time points:
+waves integrated throughout all the time. **Unpractical due to infinite domain for integral**. Put in time domain function, transform
+it to a function from frequency to sound pressure. Because frequency measured in radians (one cycle = $ 2\pi $), other way around is
+near inverse. Conversions between signal of frequences and signal of time points:
 
 $$
 \hat{f}(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i \omega t} dt \qquad
@@ -105,7 +107,7 @@ Bins "[leak](https://wiki.besa.de/index.php?title=File:Spectral_%285%29.gif)" to
 fully represent the frequency of the bin. DFT thus look like overlapped [Gaussian Filters](https://en.wikipedia.org/wiki/Gaussian_filter).
 
 _Fast Fourier Transform_ - $O(N \lg N)$ performance compared to DFT $O(N^2)$, used to obtain whole spectrum, requires power-of-two
-number of samples and output frequencies distributed linearly.
+number of samples and output frequencies distributed linearly. Algorithm used to apply DFT, $N$ .
 
 _Discrete Cosine Transformation_ - Similar to FFT, but gives only magnitudes, ignores phase information since amplitude is much more
 valuable, used in compression and processing (`MPEG`).
@@ -142,7 +144,7 @@ _Filter Shapes_ - Low Pass, High Pass, Bandpass, Band Notch. [Audio Filters Expl
 _Passband, Stopband_ - Frequences that pass by the filter, otherwise blocked or rejected.
 
 In **time domain**, samples are numbered, sampling rate often disregarded. Amplitude normalized to -1..1  
-Frequency Domain: Frequencies range from 0..1 (Nyquist Limit).
+Frequency Domain: Frequencies range from 0..1 (Nyquist Limit - Samples must be 2x rate of highest frequency).
 
 #### FIR Filters
 
@@ -154,3 +156,21 @@ _IIR Filter_ - Infinite Impulse Response, use previous filter inputs/outputs to 
 output and contribute to next chunk to filter due to looping the impulse back into the (previous) input.
 
 - Ideally reduces amplitude of impulse over time - _stable filter_
+
+## Week 4
+
+### 10/22/24 - Review of DFT
+
+DFT: Given a sequence $x[t]$ of samples at sample rate $r$ (in samples/sec) produce a sequence $X[k]$ of powers at frequencies,
+where $k$ is the normalized frequency $k = 2f / r$, $f = k/2r$
+
+```python
+# Sequence of frequencies
+for k in range(N):
+  X[k] = sum([x[n] * exp(-i * k * n / N)] for n in range(N))
+```
+
+Output would be a complex number, representing the power of particular frequency $k$, and phase (shift of sine wave).
+As $k$ ranges from 0 to N, it ranges from **0 to the Nyquist Rate**.
+
+FFT would give linearly ranged x-axis from 0 to Nyquist frequency.
