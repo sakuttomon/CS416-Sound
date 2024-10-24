@@ -153,7 +153,8 @@ _Finite Impulse Response_ - DFT filter would treat impulses identically. When pu
 Impulses presented to the filter eventually go away in favor of the 0s.
 
 _IIR Filter_ - Infinite Impulse Response, use previous filter inputs/outputs to decide next filter output. Preserves impulses in
-output and contribute to next chunk to filter due to looping the impulse back into the (previous) input.
+output and contribute to next chunk to filter due to looping the impulse back into the (previous) input. Will eventually damp out
+the more an impulse is used, and discretization may fully eliminate such impulses if they end up being too small to represent.
 
 - Ideally reduces amplitude of impulse over time - _stable filter_
 
@@ -174,3 +175,27 @@ Output would be a complex number, representing the power of particular frequency
 As $k$ ranges from 0 to N, it ranges from **0 to the Nyquist Rate**.
 
 FFT would give linearly ranged x-axis from 0 to Nyquist frequency.
+
+### 10/24/22 - Filter Design
+
+**FIR Lowpass Filter**
+
+$x[n]$ is the nth sample of input, $y[n]$ is the nth sample of output. Amplitude of sample is assumed -1..1
+
+Equation to implement: $y[n] = \frac{1}{2}(x[n] + x[n - 1])$. Takes the average of the sample and the sample before it.
+At first or last sample, no previous sample to reference. Can enforce beginning and end boundaries.
+
+If sample $x[n]$ is positive, sample $x[n-1]$ will tend to be negative, so they will tend to cancel. For
+lower frequencies the sample $x[n]$ will be close to $x[n-1]$ so they will reinforce.
+
+$$ Lowpass: y[i] = \frac{1}{k} x[i-k \ldots i] \cdot a[k \ldots 0] $$
+
+Lowpass Advantages
+
+- _Inversion_: Negate all coefficients and add 1 to the "center" coefficient — flips the spectrum, so high-pass.
+- _Reversal_: Reverse the order of coefficients — reverses the spectrum, so high-pass.
+- _Superposition_: Average the coefficients of two equal-length filters — spectrum that is the product of the filters. If one is low-pass and the other high-pass, this is band-notch. Invert to get bandpass.
+
+Code referenced in class: https://github.com/pdx-cs-sound/soundfreq
+
+Filters allow for resampling by filtering out sequences, then sample the remaining (e.g. every 6th sample)
