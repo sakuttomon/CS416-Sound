@@ -7,4 +7,22 @@ This code was written as a result of my research through the [Matplotlib](https:
 attempt to better visualize how FFT breaks down a signal and provides frequency information. By extension, I also looked into how
 window functions factored into this application of a discrete fourier transformation.
 
-_Upcoming_ - Observations
+## Comparing Spectrogram with Audacity
+
+Comparing the results of `clipped.wav` between `fft-spectrogram.py` and Audacity, some patterns are revealed:
+
+- From bottom to top, the lines get thinner in height.
+  - Bottom line represents the **fundamental**, the most dominant frequency.
+- Lines above the fundamental are **harmonics**
+  - Produced from the clipping, which interrupts the linear, singular frequency of typical sine waves.
+  - The repeated lines are equally spaced, aligning with how harmonics are multiples of the fundamental frequency.
+- Single lines resemble little variance in frequency, which matches the redundant pattern of a sine wave.
+- The "pillars" at the ends of the Audacity spectrogram likely is a result of signal being windowed for the FFT.
+
+**Prototype Code:**
+
+![Spectrogram Plot from fft-spectrogram.py](spectrogram-plot.png)
+
+**Audacity:**
+
+![Spectrogram generated from Audacity](spectrogram-audacity.png)
