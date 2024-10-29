@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.io import wavfile
+from scipy.signal import butter
 
 def loadWAV(file):
     """
@@ -15,13 +16,39 @@ def loadWAV(file):
     sample_rate, audio_data = wavfile.read(file)
     return sample_rate, audio_data
 
-def toneEqualizer():
+def makeFilter(cutoffs, filter_type, sample_rate):
+    """
+    Designs a [butterworth filter](https://en.wikipedia.org/wiki/Butterworth_filter) 
+    using [`scipy.signal.butter`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html) 
+    with supplied cutoff frequencies and band type. Outputs resulting filter coefficients in second-order sections 
+    (sos) format, a common method for general-purpose filtering.
+    
+    Args:
+        cutoffs (int or int tuple): Cutoff frequency/frequencies for the filter.
+        filter_type (str): The type of filter to create, expects 'lowpass', 'bandpass', or 'highpass'.
+        sample_rate (int): Number of samples per second of the audio.
+    
+    Returns:
+        sos (np.array): Second-order sections representation of the filter.
+    """
+    # Asked ChatGPT for a suggestion on filter order (N=10), an order of 10 results in sharp enough
+    # cutoffs to enforce our band boundary conditions. Butterworth produces flat frequency response 
+    # in passband, so smooth response is maintained while still offering sharp cutoff.
+    sos = butter(10, cutoffs, btype=filter_type, fs=sample_rate, output='sos')
+
+    # Thread used to understand how increasing order sharpens the transition between preserved and filtered 
+    # frequencies and get closer to the "ideal brick wall" that our boundary conditions try to set:
+    # https://dsp.stackexchange.com/questions/34127/higher-order-butterworth-filters
+
+    return sos
+
+def toneEqualizer(audio_data, sample_rate, window_size, window_move):
     """
     Adjust the tone of an audio input, using FFT to measure sound energy across a
     given window size. 
     
     Within each window, frequencies are organized into low, mid, and high level bands. 
-    For each band level, a tone filter scales the frequencies to the overall **average** 
+    For each band level, a tone filter adjusts the frequencies to the overall **average** 
     band energy of the window. The "speed" of adjusting the tone filters is determined by 
     the window size (how many samples to adjust at a time), and the number of samples to 
     move for the next FFT window.
@@ -35,6 +62,14 @@ def toneEqualizer():
     Returns:
         adjusted_audio (np.array): Array containing audio data with tone adjustments applied.
     """
+    # Overall audio data
+    audio_to_adjust = np.copy(audio_data)
+    num_windows = (len(audio_data) - window_size) // window_move + 1
+
+    # Tone filters for each band
+    low_filter = makeFilter(300, 'lowpass', sample_rate)
+    mid_filter = makeFilter((300, 2000), 'bandpass', sample_rate)
+    high_filter = makeFilter(2000, 'highpass', sample_rate)
 
 if __name__ == "__main__":
     sample_rate, audio_data = loadWAV('sine.wav')
