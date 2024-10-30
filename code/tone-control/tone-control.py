@@ -71,6 +71,27 @@ def measureWithFFT(window_data, sample_rate):
 
     return frequencies, magnitudes
 
+def calculateBandEnergy(frequencies, magnitudes):
+    """
+    Take frequencies and magnitudes supplied from an FFT result and sums the magnitudes within defined 
+    low, mid, and high band boundaries. Used for calculating the total sound energy for each band.
+
+    Args:
+        magnitudes (np.array): Magnitudes extracted from an FFT operation.
+        frequencies (np.array): Frequencies extracted from an FFT operation.
+    
+    Returns:
+        low_energy (float): Energy in the 0-300 Hz range.
+        mid_energy (float): Energy in the 301-2000 Hz range.
+        high_energy (float): Energy in the 2000+ Hz range.
+    """
+    # Filter magnitude elements to sum based on frequency value.
+    low_energy = np.sum(magnitudes[(frequencies >= 0) & (frequencies <= 300)])
+    mid_energy = np.sum(magnitudes[(frequencies > 300) & (frequencies <= 2000)])
+    high_energy = np.sum(magnitudes[frequencies > 2000])
+
+    return low_energy, mid_energy, high_energy
+
 def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move):
     """
     Adjust the tone of an audio input, using FFT to measure sound energy across a
@@ -113,6 +134,10 @@ def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move)
 
             # Measure sound energy using FFT
             frequencies, magnitudes = measureWithFFT(window_data, sample_rate)
+            
+            # Calculate energy in each band tier
+            low_energy, mid_energy, high_energy = calculateBandEnergy(frequencies, magnitudes)
+            average_energy = (low_energy + mid_energy + high_energy) / 3
 
 
 if __name__ == "__main__":
