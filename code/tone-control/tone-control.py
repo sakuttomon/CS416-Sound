@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.io import wavfile
+from scipy.fft import rfft, rfftfreq
 from scipy.signal import butter
 
 def loadWAV(file):
@@ -42,6 +43,34 @@ def makeFilter(cutoffs, filter_type, sample_rate):
 
     return sos
 
+def measureWithFFT(window_data, sample_rate):
+    """
+    Applies a real FFT using [`scipy.rfft`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.fft.rfft.html) 
+    to a window of audio data, extracting the frequencies and magnitudes.
+
+    Real FFT is used since the FFT of real-valued inputs (e.g. an audio signal) results in a symmetric
+    complex conjugate sequence, where positive frequency components have a corresponding negative component.
+    This symmetry means only the positive frequencies are relevant when dealing with audio, hence the use of `rfft`.
+    Reference: https://docs.scipy.org/doc/scipy/tutorial/fft.html#
+
+    Args:
+        window_data (np.array): Segment of the audio data.
+        sample_rate (int): Number of samples per second of the audio.
+
+    Returns:
+        frequencies (np.array): Array of positive frequencies from the FFT result.
+        magnitudes (np.array): Array of magnitudes for each frequency component.
+    """
+    fft_result = rfft(window_data)
+
+    # Since the FFT result is complex (real and imaginary parts), absolute value will calculate √(a² + b²)
+    # for the two parts, obtaining single values representing the relative strength of each frequency.
+    # Reference: https://realpython.com/python-scipy-fft/
+    magnitudes = np.abs(fft_result)
+    frequencies = rfftfreq(len(window_data), d=1/sample_rate)
+
+    return frequencies, magnitudes
+
 def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move):
     """
     Adjust the tone of an audio input, using FFT to measure sound energy across a
@@ -76,8 +105,15 @@ def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move)
         audio_to_adjust = np.copy(audio_data)
         num_windows = (len(channel) - window_size) // window_move + 1
 
-        for window in range(num_windows):
-            pass
+        for window_position in range(num_windows):
+            # Determine which array elements in audio to place window
+            start = window_position * window_move
+            end = start + window_size
+            window_data = channel[start:end]
+
+            # Measure sound energy using FFT
+            frequencies, magnitudes = measureWithFFT(window_data, sample_rate)
+
 
 if __name__ == "__main__":
     sample_rate, audio_data = loadWAV('sine.wav')
