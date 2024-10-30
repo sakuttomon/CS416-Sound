@@ -42,7 +42,7 @@ def makeFilter(cutoffs, filter_type, sample_rate):
 
     return sos
 
-def toneEqualizer(audio_data, sample_rate, window_size, window_move):
+def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move):
     """
     Adjust the tone of an audio input, using FFT to measure sound energy across a
     given window size. 
@@ -62,14 +62,22 @@ def toneEqualizer(audio_data, sample_rate, window_size, window_move):
     Returns:
         adjusted_audio (np.array): Array containing audio data with tone adjustments applied.
     """
-    # Overall audio data
-    audio_to_adjust = np.copy(audio_data)
-    num_windows = (len(audio_data) - window_size) // window_move + 1
-
     # Tone filters for each band
     low_filter = makeFilter(300, 'lowpass', sample_rate)
     mid_filter = makeFilter((300, 2000), 'bandpass', sample_rate)
     high_filter = makeFilter(2000, 'highpass', sample_rate)
+
+    # If data has multiple dimensions, it is a 2D array of stereo audio
+    stereo_bool = audio_data.ndim > 1
+    # Put audio data in a list, transposing stereo will result in [2 arrays, left and right audio]
+    channels = [audio_data] if not stereo_bool else audio_data.T
+
+    for channel in channels:
+        audio_to_adjust = np.copy(audio_data)
+        num_windows = (len(channel) - window_size) // window_move + 1
+
+        for window in range(num_windows):
+            pass
 
 if __name__ == "__main__":
     sample_rate, audio_data = loadWAV('sine.wav')
