@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.io import wavfile
-from scipy.fft import rfft, rfftfreq
-from scipy.signal import butter
+from scipy.fft import irfft, rfft, rfftfreq
+from scipy.signal import butter, sosfilt, sosfilt_zi
 
 def loadWAV(file):
     """
@@ -16,6 +16,17 @@ def loadWAV(file):
     """
     sample_rate, audio_data = wavfile.read(file)
     return sample_rate, audio_data
+
+def saveWAV(file, sample_rate, audio_data):
+    """
+    Saves an audio data array to a WAV file.
+    
+    Args:
+        file_path (str): Path to save the WAV file.
+        sample_rate (int): Sample rate of the audio.
+        audio_data (np.array): Audio data array.
+    """
+    wavfile.write(file, sample_rate, audio_data)
 
 def makeFilter(cutoffs, filter_type, sample_rate):
     """
@@ -32,10 +43,9 @@ def makeFilter(cutoffs, filter_type, sample_rate):
     Returns:
         sos (np.array): Second-order sections representation of the filter.
     """
-    # Asked ChatGPT for a suggestion on filter order (N=10), an order of 10 results in sharp enough
-    # cutoffs to enforce our band boundary conditions. Butterworth produces flat frequency response 
+    # Higher order = sharper cutoffs at band boundary conditions. Butterworth produces flat frequency response 
     # in passband, so smooth response is maintained while still offering sharp cutoff.
-    sos = butter(10, cutoffs, btype=filter_type, fs=sample_rate, output='sos')
+    sos = butter(32, cutoffs, btype=filter_type, fs=sample_rate, output='sos')
 
     # Thread used to understand how increasing order sharpens the transition between preserved and filtered 
     # frequencies and get closer to the "ideal brick wall" that our boundary conditions try to set:
@@ -86,13 +96,14 @@ def calculateBandEnergy(frequencies, magnitudes):
         high_energy (float): Energy in the 2000+ Hz range.
     """
     # Filter magnitude elements to sum based on frequency value.
-    low_energy = np.sum(magnitudes[(frequencies >= 0) & (frequencies <= 300)])
-    mid_energy = np.sum(magnitudes[(frequencies > 300) & (frequencies <= 2000)])
-    high_energy = np.sum(magnitudes[frequencies > 2000])
+    low_energy = np.average(magnitudes[(frequencies >= 0) & (frequencies <= 300)])
+    mid_energy = np.average(magnitudes[(frequencies > 300) & (frequencies <= 2000)])
+    high_energy = np.average(magnitudes[frequencies > 2000])
+    # If looking for peak energy, can use np.max()
 
     return low_energy, mid_energy, high_energy
 
-def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move):
+def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size=1024, window_move=512):
     """
     Adjust the tone of an audio input, using FFT to measure sound energy across a
     given window size. 
@@ -112,18 +123,23 @@ def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move)
     Returns:
         adjusted_audio (np.array): Array containing audio data with tone adjustments applied.
     """
-    # Tone filters for each band
-    low_filter = makeFilter(300, 'lowpass', sample_rate)
-    mid_filter = makeFilter((300, 2000), 'bandpass', sample_rate)
-    high_filter = makeFilter(2000, 'highpass', sample_rate)
+    # Tone filters for each band, has to be run with every sample
+    low_filter = makeFilter(300, 'low', sample_rate)
+    mid_filter = makeFilter((300, 2000), 'band', sample_rate)
+    high_filter = makeFilter(2000, 'high', sample_rate)
+
+    low_state = sosfilt_zi(low_filter)
+    mid_state = sosfilt_zi(mid_filter)
+    high_state = sosfilt_zi(high_filter)
 
     # If data has multiple dimensions, it is a 2D array of stereo audio
     stereo_bool = audio_data.ndim > 1
     # Put audio data in a list, transposing stereo will result in [2 arrays, left and right audio]
     channels = [audio_data] if not stereo_bool else audio_data.T
+    adjusted_channels = []
 
     for channel in channels:
-        audio_to_adjust = np.copy(audio_data)
+        adjusted_channel = np.zeros(len(channel))
         num_windows = (len(channel) - window_size) // window_move + 1
 
         for window_position in range(num_windows):
@@ -139,7 +155,38 @@ def toneEqualizer(audio_data: np.ndarray, sample_rate, window_size, window_move)
             low_energy, mid_energy, high_energy = calculateBandEnergy(frequencies, magnitudes)
             average_energy = (low_energy + mid_energy + high_energy) / 3
 
+            # Set a threshold to turn off low-energy bands
+            energy_threshold = 0.15 * average_energy
+
+            # Gain calculation, multiplier for adjusting energy to the desired balance
+            # Adjust gains with slight boosts for high frequencies if they’re being attenuated too much
+            low_gain = np.sqrt(average_energy / low_energy) if low_energy > energy_threshold else 0.8
+            mid_gain = np.sqrt(average_energy / mid_energy) if mid_energy > energy_threshold else 1.0
+            high_gain = np.sqrt(average_energy / high_energy) if high_energy > energy_threshold else 1.2
+            
+            # Filter each frequency and scale to make the energies roughly equal
+            # Scipy assumes there's 0s from the previous block if not given context of zi
+            low_band, low_state = sosfilt(low_filter, window_data * low_gain, zi=low_state)
+            mid_band, mid_state = sosfilt(mid_filter, window_data * mid_gain, zi=mid_state)
+            high_band, high_state = sosfilt(high_filter, window_data * high_gain, zi=high_state)
+
+            # Sum the bands to get the adjusted signal for this window
+            # Apply a window function to smooth the edges
+            window_function = np.hanning(window_size)
+            adjusted_window = (low_band + mid_band + high_band) * window_function
+            adjusted_channel[start:end] += adjusted_window[:end - start]
+
+        adjusted_channels.append(adjusted_channel)
+
+    # Combine adjusted channels back into a stereo (or mono) format
+    adjusted_audio = np.array(adjusted_channels).T if stereo_bool else adjusted_channels[0]
+
+    return adjusted_audio.astype(np.int16)
 
 if __name__ == "__main__":
     sample_rate, audio_data = loadWAV('sine.wav')
     print(f"{sample_rate}")
+
+    # 100ms with 48000 samples per second means 4800, so 4096 is closest power of 2
+    adjusted_audio = toneEqualizer(audio_data, sample_rate, 1024, 512)
+    saveWAV("adjusted-sine.wav", sample_rate, adjusted_audio)
