@@ -219,3 +219,13 @@ _Knee_ - How compressor transitions between non-compressed and compressed states
 <img src=https://media.uaudio.com/assetlibrary/b/l/blog_audio_compression_basics_feat_1_@2x_1.jpg width=360 height=240>
 
 Code referenced in class: https://github.com/pdx-cs-sound/effects/blob/master/compressor.py
+
+### 10/31/24 - Tone Control, More Effects
+
+FFT is performed in chunks (windows), whereas filter is applied throughout all samples. Realize that when a filter is going,
+it initially is given a block of all 0s, meaning the beginning may appear wonky. The filter needs to have a state of the
+previous block saved as it goes through the remaining blocks. Calling scipy `sosfilt` requires context of the previous block.
+
+**Implementing an Effect**: https://github.com/pdx-cs-sound/effects/blob/master/distortion.py
+
+-
