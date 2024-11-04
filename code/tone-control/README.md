@@ -6,3 +6,35 @@ Tone filters are then applied to adjust the energy in each band, balancing them 
 equal. This process demonstrates **tone control** - adjusting the volume within specific frequency bands independently. Through
 manipulating individual frequencies to be softer or louder by adjusting their energies, the original audio with its varied band
 "levels" can sound more balanced or neutral in volume.
+
+## Reflections
+
+This objective was a very "deep-end" experience for me, especially so given my lack of knowledge in digital sound processing.
+Throughout my commits, I've slowly understood more and more of how this process operates, described in the following sub-section,
+but I have not fully wrapped my head around a way to implement it.
+
+### How it works
+
+The essential process is that for each band level, three filters are created. In a separate instance, an FFT is applied to measure energies of the low, mid, and high band ranges within a window. After determining the gain necessary to roughly equalize the overall
+energies of the three bands, the filters and gains are "combined" to adjust a band to be more similar to the other two bands, thus resulting in a more balanced audio signal.
+
+1. An input WAV file is loaded through `scipy.wavfile`, extracting the sample rate and audio data array.
+2. Three filters are made for each band (low, mid, high). All filters are made using the
+   [butterworth filter](https://en.wikipedia.org/wiki/Butterworth_filter), a filter designed to produce a flat frequency response in the passband, resulting in minimal ripples. Each filter is outputted as a second-order-section (`sos`) formatted list, a stable implementation structure that `scipy` recommends for general-purpose filtering.
+
+   The filter type and cutoffs to generate a filter for are determined by the corresponding band level. For example the `low_filter` is made using the band type `lowpass` and a cutoff of `300`.
+
+3. The program works for both mono and stereo audio by looping through 1 or 2 channels (array dimensions) of the audio data. Within each channel, an inner loop increments through windows, meant for viewing view short time segments of the overall signal and analyze frequency content. These windows are sized as 1024 samples, with a movement of 512 samples to smooth the transitions between eventual adjustments.
+
+4. Within each window, frequencies and magnitudes (absolute values of the frequency indexes) are calculated by applying an FFT.
+
+5. Energies for each band are calculated by taking the **average** of the frequencies within the respective cutoffs.
+
+6. Using an overall average calculated from the previous energies, gains are calculated for each band level. The purpose of these gains is to determine the amplification necessary for the frequencies within each band to approach the overall average.
+
+7. An `sosfilt` is then applied to the window data, multiplied alongside the respective gain. The gain informs the filter how to
+   adjust each band to manifest a balanced sound effect.
+
+8. The filtered results for each band are then combined to an `adjusted_window`, which is then applied back to the channel before moving on to the next window and repeating this process.
+
+### Limitations
