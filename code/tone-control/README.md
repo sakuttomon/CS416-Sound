@@ -38,3 +38,17 @@ energies of the three bands, the filters and gains are "combined" to adjust a ba
 8. The filtered results for each band are then combined to an `adjusted_window`, which is then applied back to the channel before moving on to the next window and repeating this process.
 
 ### Limitations
+
+The code's current state seemingly produces "filter transients" where ripples are occuring between each window end. To provide context to each `sosfilt` call of the filter results before it, I used [`sosfilt_zi`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfilt_zi.html#sosfilt-zi) and the `zi` parameter to supply the previous state to the filter methods. However, the
+resulting WAV files still showed the same ripples.
+
+As a bandaid fix, I applied a [Hann window function](https://en.wikipedia.org/wiki/Hann_function) to smooth transitions.
+Realistically, windowing is not necessary since filters would automatically perform such smoothing due to how they operate.
+Some research indicates that the Butterworth filter I used has the disadvantage of causing
+[transients](https://en.wikipedia.org/wiki/Transient_response), but there are a lot of
+possible factors, linked below, that make it difficult to pinpoint the exact solution.
+
+- [Transient Explanation](https://www.dsprelated.com/freebooks/filters/Transient_Response_Steady_State.html)
+- [Step Response](https://stackoverflow.com/questions/27540434/filter-gain-issue-when-using-scipy-signal-in-python)
+- [Filter Order](https://dsp.stackexchange.com/questions/94015/butterworth-filter-vs-elliptic-filter-artefacts-and-huge-transient#:~:text=If%20I%20change%20the%20filter,infinite%2Dimpulse%2Dresponse)
+- [Signal Length and Edge Samples](https://www.mathworks.com/matlabcentral/answers/407690-why-is-there-a-ripple-in-the-response-of-the-low-pass-butterworth-filter)
