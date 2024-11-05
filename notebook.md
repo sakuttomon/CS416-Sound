@@ -9,6 +9,7 @@ the estimated date where such activities occured or finished.
 | [Week 2](#week-2) |
 | [Week 3](#week-3) |
 | [Week 4](#week-4) |
+| [Week 5](#week-5) |
 
 ## Week 1
 
@@ -199,3 +200,32 @@ Lowpass Advantages
 Code referenced in class: https://github.com/pdx-cs-sound/soundfreq
 
 Filters allow for resampling by filtering out sequences, then sample the remaining (e.g. every 6th sample)
+
+## Week 5
+
+### 10/29/24 - Effects
+
+Wet & Dry - The affected/unaffected parts of the sound signal.  
+Wet/Dry Gain - Higher wet gain increases the strength of the reverb, dry signal is sound without reverb.
+
+_Compression_ - Make volume more of the same. Typically implemented as linear (log space b/c volume) gain functions with a "knee".  
+_Expansion_ - Make differences in volume wider. E.g. compander: expand sounds, perform effects, then compress back.
+
+_Knee_ - How compressor transitions between non-compressed and compressed states
+
+- _Soft_ - Smoother and more gradual compression.
+- _Hard_ - Quickly clamps down on signal upon passing threshold.
+
+<img src=https://media.uaudio.com/assetlibrary/b/l/blog_audio_compression_basics_feat_1_@2x_1.jpg width=360 height=240>
+
+Code referenced in class: https://github.com/pdx-cs-sound/effects/blob/master/compressor.py
+
+### 10/31/24 - Tone Control, More Effects
+
+FFT is performed in chunks (windows), whereas filter is applied throughout all samples. Realize that when a filter is going,
+it initially is given a block of all 0s, meaning the beginning may appear wonky. The filter needs to have a state of the
+previous block saved as it goes through the remaining blocks. Calling scipy `sosfilt` requires context of the previous block.
+
+**Implementing an Effect**: https://github.com/pdx-cs-sound/effects/blob/master/distortion.py
+
+-
