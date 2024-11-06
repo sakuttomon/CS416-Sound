@@ -45,6 +45,10 @@ filters to reduce frequencies smoothly and preserve the slopes of the original w
 | Limit amplitude by trauncating wave             | Gradually reduce down high frequencies that are beyond cutoff |
 | Distorts shape due to flattening wave at limits | Attempts to preserve shape of the signal's tone               |
 
+### 10/11/24 - Clipping Portfolio Objective
+
+I merged the [`clipped`](code/clipped/) assignment branch into the main branch. The dedicated [README](code/clipped/README.md) within the directory contains my reflections and lessons learned on how I approached the objective.
+
 ## Week 3
 
 ### 10/14/24 - Saying Hi in Zulip
@@ -202,6 +206,22 @@ Code referenced in class: https://github.com/pdx-cs-sound/soundfreq
 
 Filters allow for resampling by filtering out sequences, then sample the remaining (e.g. every 6th sample)
 
+### 10/25/24 - Playing around with FFT and Spectrograms
+
+Throughout the week, to greater understand how external libraries implement FFT and the process of measuring frequencies,
+I made a program [`fft-spectrogram.py`](code/spectrogram-fun/fft-spectrogram.py) within the [`spectogram-fun`](code/spectrogram-fun/)
+directory that plots the spectrogram of a WAV file using Matplotlib's FFT functionalities.
+
+Takeaways about the role of window functions when applying FFT:
+
+- FFT assumes input signal is periodic, but real signals don't purely repeat continiously, so FFT would produce spectral leakage discontinuities due to cutting off the signal.
+- Window functions mitigate this leakage by tapering signal at edges of the window. The window would smoothly reduce the amplitude of the signal to zero at the edges, reducing discontinuities between windows.
+- The [Hann window](https://en.wikipedia.org/wiki/Hann_function) is a normal curve function, which would produce the aspired smoothing effect at the quartile edges.
+- Window effectively acts as a filter that smooths the data before applying the FFT
+
+The dedicated [`README`](code/spectrogram-fun/README.md) contains my analysis about the spectrogram results, the patterns I found
+from interpreting the frequency plot, and what those patterns mean.
+
 ## Week 5
 
 ### 10/29/24 - _Notes_: Effects
@@ -228,6 +248,22 @@ it initially is given a block of all 0s, meaning the beginning may appear wonky.
 previous block saved as it goes through the remaining blocks. Calling scipy `sosfilt` requires context of the previous block.
 
 **Implementing an Effect**: https://github.com/pdx-cs-sound/effects/blob/master/distortion.py
+
+### 11/3/24 - Adaptive Tone Control
+
+I merged the [`tone-control`](code/tone-control/) assignment branch into the main branch. The implementation is slightly
+flawed due to my inexperience, but I feel the knowledge I gained and the resulting output is satisfactory. The dedicated
+[`README`](code/tone-control/README.md) within the directory details my reflections and thought process about how
+the code works, which were derived from the many things I researched and learned throughout implementing the objective.
+Below is a summary of my takeaways:
+
+- _Gain_ - The amplifier to adjust an audio signal. In this objective, gain determines the multiplier to adjust each frequency within
+  the low/mid/high bands that would boost or attentuate the respective energies to the overall average.
+- _Energy Calculation_ - Performing an FFT returns frequencies, which are complex values (real and imaginary) representing amplitude and phase. Calculating the **magnitude** can serve as the energy of a given frequency.
+- _Filter Startup Transients_ - When applying a filter in window chunks, each call maintains an internal state about the previous samples to inform the next samples and produce a continuous response. Failing to remember past samples mean a filter starts fresh
+  at every window, resulting in transients that cause distortions.
+- _Combining Bands_ - Since the objective organizes band levels by frequency ranges, the low, mid, and high bands can be manipulated separately, then summed to reconstruct the windowed audio signal.
+- _Minimal Energy Bands_ - When certain frequency bands have little to no energy (e.g. a sine wave would have power in one band), applying gain can disproportionately amplify noise or artifacts in those bands. This exaggerated adjustment can be solved by "turning off" bands, which an energy threshold can enforce on gain calculation.
 
 ## Week 6
 
