@@ -1,7 +1,7 @@
 # Engineering Notebook - Irvin Lu
 
 A document containing notes or reflections about the work and progress done throughout the course, organized by each week and
-the estimated date where such activities occured or finished.
+the estimated date where such activities occured or finished. Notes taken from lecture are prefaced with **_Notes_** in the date header.
 
 | Table of Contents |
 | ----------------- |
@@ -10,6 +10,7 @@ the estimated date where such activities occured or finished.
 | [Week 3](#week-3) |
 | [Week 4](#week-4) |
 | [Week 5](#week-5) |
+| [Week 6](#week-6) |
 
 ## Week 1
 
@@ -54,7 +55,7 @@ in "behind-the-scenes" content of media, but sound and music is a field I've yet
 interactions between computers and audio seemed like a perfect motive to start learning this hobby topic and make some fun projects,
 while also feeling relevant to my field of study.
 
-### 10/18/24 - Notes: Understanding Frequency
+### 10/18/24 - _Notes_: Understanding Frequency
 
 This week involved various video lectures introducing many concepts. Notes and takeaways are organized per video topic below.
 
@@ -161,7 +162,7 @@ the more an impulse is used, and discretization may fully eliminate such impulse
 
 ## Week 4
 
-### 10/22/24 - Review of DFT
+### 10/22/24 - _Notes_: Review of DFT
 
 DFT: Given a sequence $x[t]$ of samples at sample rate $r$ (in samples/sec) produce a sequence $X[k]$ of powers at frequencies,
 where $k$ is the normalized frequency $k = 2f / r$, $f = k/2r$
@@ -177,7 +178,7 @@ As $k$ ranges from 0 to N, it ranges from **0 to the Nyquist Rate**.
 
 FFT would give linearly ranged x-axis from 0 to Nyquist frequency.
 
-### 10/24/22 - Filter Design
+### 10/24/22 - _Notes_: Filter Design
 
 **FIR Lowpass Filter**
 
@@ -203,7 +204,7 @@ Filters allow for resampling by filtering out sequences, then sample the remaini
 
 ## Week 5
 
-### 10/29/24 - Effects
+### 10/29/24 - _Notes_: Effects
 
 Wet & Dry - The affected/unaffected parts of the sound signal.  
 Wet/Dry Gain - Higher wet gain increases the strength of the reverb, dry signal is sound without reverb.
@@ -220,7 +221,7 @@ _Knee_ - How compressor transitions between non-compressed and compressed states
 
 Code referenced in class: https://github.com/pdx-cs-sound/effects/blob/master/compressor.py
 
-### 10/31/24 - Tone Control, More Effects
+### 10/31/24 - _Notes_: Tone Control, More Effects
 
 FFT is performed in chunks (windows), whereas filter is applied throughout all samples. Realize that when a filter is going,
 it initially is given a block of all 0s, meaning the beginning may appear wonky. The filter needs to have a state of the
@@ -228,4 +229,31 @@ previous block saved as it goes through the remaining blocks. Calling scipy `sos
 
 **Implementing an Effect**: https://github.com/pdx-cs-sound/effects/blob/master/distortion.py
 
--
+## Week 6
+
+### 11/5/24 - _Notes_: Delay and Modulation Effects
+
+**Delay Effects** - store a signal and give back a delayed copy. Can organize audio samples into a queue as a
+[ring buffer](https://en.wikipedia.org/wiki/Circular_buffer) and apply delay.  
+The delay level intensity influence how the output sounds:
+
+- Small delay (< 10ms): Phase cancellation, localization
+- Moderate delay (10-100ms): "Ensemble" effect
+- Moderate to long delay (50-500ms): Reverb and echo effects
+- Other effects like filtering and damping the delay can give further depth (e.g. wet/dry modification).
+
+Code referenced in class for reverb, vibrato, tremelo: https://github.com/pdx-cs-sound/effects/blob/master/
+
+**Modulation Effects**
+
+- **Vibrato**: For each sample of the output, the gain is multiplied by a low frequency oscillator to change the amplitude, changing the pitch subtly and quickly.
+
+```python
+t = np.linspace(0, len(channel) / float(rate), len(channel));
+lfo = args.depth * np.sin(2 * np.pi * args.frequency * t)
+channel *= 1.0 - args.depth + lfo / 2
+```
+
+- **Tremelo**: Similar to chorus effect, instead of changing amplitude, go back and forth of time. Uses entire sample as buffer. Code reference premise: speed up or slow down the playback rate.
+
+- **Frequency Stretching / Pitch Shiftingt** - Lengthen or shorten a signal, but maintain the harmonic content. A fundamental by itself doesn't capture overtones / harmonics. Filter noise with amplitudes of output filter. _Example_: [Vocoder](https://github.com/pdx-cs-sound/vocoder)
