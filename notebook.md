@@ -267,6 +267,48 @@ Below is a summary of my takeaways:
 
 ## Week 6
 
+### 11/4/24 - Project Ideas, Thought Process
+
+I'm really fond of video game music, which extends to music made within the limitations of older consoles, such as the Nintendo 64 or
+DS. I've enjoyed many covers online that take a song and "convert" it into the style of another video game or an 8/16-bit retro
+rendition.
+
+As such, my research for something feasible to do as a project centers around manipulating or producing "gamified" or retro
+sounds. The following summarizes my research and help serve as context for what my eventual project will be:
+
+- **_Soundfonts_** - Most song covers to a game's style use [soundfonts](https://en.wikipedia.org/wiki/SoundFont), a file format that
+  provides a ton of samples from the source for playing MIDI sounds. This collection of samples is how an artist can take a song and
+  make it sound like another game (e.g. Pokemon Black and White) by covering the song using audio samples from the game.
+
+  - **Idea**: Take an input audio file and create a soundfont file for it.
+    - _Practicality_: There are Python libraries ([`sf2_loader`](https://pypi.org/project/sf2-loader/)) to help with playing and rendering soundfonts. However, as someone inexperienced in music composition, it might not feel fulfilling to program a
+      soundfont, then not actually knowing to use it to make music.
+  - **Idea**: Apply an existing soundfont onto an input audio file, remixing the audio.
+    - _Practicality_: Algorithmically applying a soundfont can be very error-prone. Musicians still need to compose how a song will sound like using the soundfont; running a program to substitute samples ignores musical intent, expression, and rhythmic content that make songs feel cohesive.
+    - Moreover, decomposing a song into individual elements (e.g. melody, harmony, bass, percussion) will be very challenging due to the mix of sounds and likely requirement to use machine learning, which is out of scope.
+
+- **_Retro Compression_** - Music from the early console era had many limitations due to the hardware that the sound was played on.
+
+  - **Idea**: An audio compression program to make sounds more retro-esque. Ways that compression can be achieved:
+    - [Bitcrushing](https://en.wikipedia.org/wiki/Bitcrusher): Reducing bit depth / resolution of the audio.
+    - Sample Rate Reduction: Music from this era had a limited frequency range, so down-sampling can mimic these limits.
+    - Filtering: Low/highpass to filter out frequencies older systems couldn't achieve, e.g. high frequencies weren't captured very well on such consoles.
+  - _Practicality_: Compressing audio this way is feasible as a program, but the music won't necessarily sound "retro", rather just a low quality rendition.
+    - The input audio needs to already sound like a song belonging to the older console era, otherwise the compressed music simply sounds muffled.
+    - The musical expression and arrangement techniques composers did within their limitations would be missing in this program.
+
+- :sparkles: **_Chiptune Synthesizer_** - From my research above on what makes music "retro", I discovered the term
+  [chiptune](https://en.wikipedia.org/wiki/Chiptune) music, which is characterized by its use of simple waveforms, such as square, triangle, and sawtooth waves.
+  - **Idea**: Take an input of musical key notes that form a melody, and synthesize those notes using a user-chosen basic wave,
+    thus producing chiptune music. To allow music expression, each note can be accompanied by a duration and volume setter to affect how the wave plays the note.
+  - _Practicality_: This project seems the most feasible to accomplish given my inexperience.
+    - Key notes can be converted into frequencies through some dictionary.
+    - Since chiptune music is characterized by basic waveforms, synthesizing each note involves applying the appropriate formula over a user supplied duration and volume.
+  - _Stretch Goals_: The project has freedom for extension if time allows.
+    - More input parts can be added besides the melody, such as a bassline or percussion, allowing for more musical expression.
+
+I plan to play around with aspects related to the **Chiptune Synthesizer** as this project ultimately seems the most well-scoped and achievable.
+
 ### 11/5/24 - _Notes_: Delay and Modulation Effects
 
 **Delay Effects** - store a signal and give back a delayed copy. Can organize audio samples into a queue as a
