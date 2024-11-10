@@ -334,4 +334,19 @@ channel *= 1.0 - args.depth + lfo / 2
 
 - **Tremelo**: Similar to chorus effect, instead of changing amplitude, go back and forth of time. Uses entire sample as buffer. Code reference premise: speed up or slow down the playback rate.
 
-- **Frequency Stretching / Pitch Shiftingt** - Lengthen or shorten a signal, but maintain the harmonic content. A fundamental by itself doesn't capture overtones / harmonics. Filter noise with amplitudes of output filter. _Example_: [Vocoder](https://github.com/pdx-cs-sound/vocoder)
+- **Frequency Stretching / Pitch Shifting** - Lengthen or shorten a signal, but maintain the harmonic content. A fundamental by itself doesn't capture overtones / harmonics. Filter noise with amplitudes of output filter. _Example_: [Vocoder](https://github.com/pdx-cs-sound/vocoder)
+
+When adding samples, averaging them can cause lower significant bits to be discarded due to their irrelevancy in calculating the average. Studios process 16-bit samples in 24-bits to act as guard digits.
+Lossless Compression - Send sine wave parameters and residue (difference between the model and the true signal)
+
+### 11/9/24 - Note to Frequency Program
+
+To start on my chiptune synthesizer project, I wrote a program within the [`note-to-frequency`](code/note-to-frequency/) directory to
+learn how I will take note inputs from the user and convert them to interactable frequencies. More details on how the program works in
+its dedicated [`README`](code/note-to-frequency/README.md). The calculation and frequency validation follows the Wikipedia article
+"[Piano key frequencies](https://en.wikipedia.org/wiki/Piano_key_frequencies)". Some lessons I learned:
+
+- In Western music notation, the note sequence in each octave progresses from C to B. This means pitches A to B need to be shifted up an octave when calculating frequency to account for this order.
+- There are multiple methods to represent flat notes, either with the flat symbol with the subsequent pitch, or the sharp (♯) modifier
+  with the current pitch (e.g. D♭ = C♯). For the project, I will likely adhere to the sharp pattern to stay consistent with managing an
+  octave of 12 musical notes.
