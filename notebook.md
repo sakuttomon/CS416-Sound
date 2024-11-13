@@ -11,6 +11,7 @@ the estimated date where such activities occured or finished. Notes taken from l
 | [Week 4](#week-4) |
 | [Week 5](#week-5) |
 | [Week 6](#week-6) |
+| [Week 7](#week-7) |
 
 ## Week 1
 
@@ -350,3 +351,20 @@ its dedicated [`README`](code/note-to-frequency/README.md). The calculation and 
 - There are multiple methods to represent flat notes, either with the flat symbol with the subsequent pitch, or the sharp (♯) modifier
   with the current pitch (e.g. D♭ = C♯). For the project, I will likely adhere to the sharp pattern to stay consistent with managing an
   octave of 12 musical notes.
+
+## Week 7
+
+### 11/12/24 - _Notes_: Compression & Music
+
+Lossless encoder code referenced in class: https://github.com/pdx-cs-sound/baco  
+Scores of compression methods (mostly lossless besides `mp3`): https://github.com/pdx-cs-sound/compression-bench  
+Notice for very repetitive patterns like a sine wave, compression operates much better due to recognizing the similarities.
+
+**White keys** on the piano organized by letter. A for key 69, and go up/down by eights. Many lessons learned from making my
+[note to frequency](code/note-to-frequency/) program are reconfirmed:
+
+- C-major scale is `C, D, E, F, G, A, B, C`
+- **Black keys** are a half step up/down from the white key to its left/right respectively.
+  - _Sharp_ (`♯` or `#`) - The "half-step-up" case, meaning "toward higher frequencies".
+  - _Flat_ (`♭` or `b`) - The "half-step-down" case, meaning "toward lower frequencies".
+  - E.g. black key number 70 notated of either A♯ or B♭.
