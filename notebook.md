@@ -1,12 +1,16 @@
 # Engineering Notebook - Irvin Lu
 
-A document containing notes or reflections about the work and progress done throughout the course, organized by each week and
-the estimated date where such activities occured or finished. Notes taken from lecture are prefaced with **_Notes_** in the date header.
+A document containing notes or reflections about the work and progress done throughout the course, organized by each week and the
+estimated date where such activities occured or finished. Notes taken from lecture are prefaced with **_Notes_** in the date header.
+
+Ideas for my overall course project were conjectured in this [entry](#11424---project-ideas-thought-process). The current plan is to
+develop a **Chiptune Synthesizer** that will take music note input from a user and apply basic waveforms to synthesize the notes
+to give a retro-esque feeling.
 
 | Table of Contents | Projects                                                                |
 | ----------------- | ----------------------------------------------------------------------- |
 | [Week 1](#week-1) |                                                                         |
-| [Week 2](#week-2) | [Clipped](#101124---clipping-portfolio-objective)                       |
+| [Week 2](#week-2) | [Clipped Sine Waves](#101124---clipping-portfolio-objective)            |
 | [Week 3](#week-3) |                                                                         |
 | [Week 4](#week-4) | [FFT & Spectrogram](#102524---playing-around-with-fft-and-spectrograms) |
 | [Week 5](#week-5) | [Adaptive Tone Control](#11324---adaptive-tone-control)                 |
