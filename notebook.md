@@ -368,3 +368,26 @@ Notice for very repetitive patterns like a sine wave, compression operates much 
   - _Sharp_ (`♯` or `#`) - The "half-step-up" case, meaning "toward higher frequencies".
   - _Flat_ (`♭` or `b`) - The "half-step-down" case, meaning "toward lower frequencies".
   - E.g. black key number 70 notated of either A♯ or B♭.
+
+### 11/13/24 - Envelope ADSR Program
+
+This is another program I wrote in the [`envelope-adsr`](code/envelope-adsr/) directory, inspired off the chiptune synthesizer project
+I want to do. This time, I aimed to learn the significance of attack, decay, sustain, and release (ADSR) for manipulating audio
+through an [envelope](<https://en.wikipedia.org/wiki/Envelope_(music)>). Details on how the program works and the reference I used to
+understand the role of each ADSR parameter is located in the dedicated [`README`](code/envelope-adsr/README.md). Below are my
+inferences on how adjusting the times of ADSR affect the music:
+
+- **Attack**
+  - _Short_ - Reaches peak amplitude quicker, resulting in notes sounding more crisp, fit for defining parts like a melody.
+  - _Long_ - Slower ascend to peak amplitude, fit for smoother, more atmospheric sounds.
+- **Decay**
+  - _Short_ - Sound fades quicker, meaning peak its decaying from sounds sharper and more pronounced.
+  - _Long_ - Peak fades more slowly, smoother transition to sustain level.
+- **Sustain**
+  - _Level_ - The amplitude volume to "hold down" at for the remaining time not covered by the other parameters.
+  - Minimal sustain means the sound will be close to or silent after decay, fit for drum hits and punchy sounds not meant to rest or smoothly fade out.
+  - Max sustain means the sound continues at the same peak volume achieved by the attack stage. Useful for notes that want to stay at the same amplitude for as long as "the key is held down".
+- **Release**
+  - _Short_ - Sound ends abruptly after "key is released", due to little time allocated for sound to fade to silence.
+  - _Long_ - Sound flows gracefully into silence, fit for notes intended to complement others as it drifts off.
+  - Not necessary if sustain is already set to minimum since sound would have already reached silence.
