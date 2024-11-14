@@ -3,15 +3,15 @@
 A document containing notes or reflections about the work and progress done throughout the course, organized by each week and
 the estimated date where such activities occured or finished. Notes taken from lecture are prefaced with **_Notes_** in the date header.
 
-| Table of Contents |
-| ----------------- |
-| [Week 1](#week-1) |
-| [Week 2](#week-2) |
-| [Week 3](#week-3) |
-| [Week 4](#week-4) |
-| [Week 5](#week-5) |
-| [Week 6](#week-6) |
-| [Week 7](#week-7) |
+| Table of Contents | Projects                                                                |
+| ----------------- | ----------------------------------------------------------------------- |
+| [Week 1](#week-1) |                                                                         |
+| [Week 2](#week-2) | [Clipped](#101124---clipping-portfolio-objective)                       |
+| [Week 3](#week-3) |                                                                         |
+| [Week 4](#week-4) | [FFT & Spectrogram](#102524---playing-around-with-fft-and-spectrograms) |
+| [Week 5](#week-5) | [Adaptive Tone Control](#11324---adaptive-tone-control)                 |
+| [Week 6](#week-6) | [Note to Frequency](#11924---note-to-frequency-program)                 |
+| [Week 7](#week-7) | [Envelope ADSR](#111324---envelope-adsr-program)                        |
 
 ## Week 1
 
@@ -48,7 +48,7 @@ filters to reduce frequencies smoothly and preserve the slopes of the original w
 
 ### 10/11/24 - Clipping Portfolio Objective
 
-I merged the [`clipped`](code/clipped/) assignment branch into the main branch. The dedicated [README](code/clipped/README.md) within the directory contains my reflections and lessons learned on how I approached the objective.
+I merged the [`clipped`](code/clipped/) assignment branch into the main branch. The dedicated [`README`](code/clipped/README.md) within the directory contains my reflections and lessons learned on how I approached the objective.
 
 ## Week 3
 
