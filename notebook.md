@@ -371,7 +371,7 @@ Notice for very repetitive patterns like a sine wave, compression operates much 
 - **Black keys** are a half step up/down from the white key to its left/right respectively.
   - _Sharp_ (`♯` or `#`) - The "half-step-up" case, meaning "toward higher frequencies".
   - _Flat_ (`♭` or `b`) - The "half-step-down" case, meaning "toward lower frequencies".
-  - E.g. black key number 70 notated of either A♯ or B♭.
+  - E.g. black key number 70 notated as either A♯ or B♭.
 
 ### 11/13/24 - Envelope ADSR Program
 
@@ -395,3 +395,19 @@ inferences on how adjusting the times of ADSR affect the music:
   - _Short_ - Sound ends abruptly after "key is released", due to little time allocated for sound to fade to silence.
   - _Long_ - Sound flows gracefully into silence, fit for notes intended to complement others as it drifts off.
   - Not necessary if sustain is already set to minimum since sound would have already reached silence.
+
+### 11/14/24 - MIDI Input for Chiptune Project
+
+I was given the suggestion to instead rely on MIDI files as my input rather than manual note strings typed in by a user. Since MIDI
+files often offer multiple channels with detailed note information, I would be given more freedom to focus on the chiptune sound generation.
+
+The libraries [`mido`](https://github.com/mido/mido) or [`pretty_midi`](https://github.com/craffel/pretty-midi) will parse notes, and
+I will ideally need to extract the start time, end time, and note pitches to correspond to frequences. The velocity will indicate
+the intensity or volume for each note, which can be mapped to ADSR parameters.
+
+To further emphasize the chiptune aesthetic, I was suggested to add "chiptune noise" alongside the MIDI note conversion. I took this
+as perhaps adding a layer of noise percussion (e.g. white noise) to mimic sharp snares that retro music tend to express due to limited
+sound output systems. Some other ideas to possibly experiment with after extracting the MIDI notes:
+
+- Apply a vibrato frequency fluctuation on melody notes to make them feel more pronounced and definitive.
+- Introduce short bursts of (possibly neighboring) notes to add a "glitchy" feeling for background effects.
