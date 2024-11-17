@@ -430,3 +430,21 @@ Currently, the program parses MIDI files and displays the properties that the `p
 instrument list and if any time/key signature changes are present. This print display was a test to ensure that the MIDI files
 I am providing were properly parsed. More info and credits on the MIDIs I am using is outlined in the project's
 [`README`](code/chiptune-synthesizer/README.md).
+
+### 11/17/24 - Online Sequencer Note Naming Convention
+
+The MIDI files I've been using for testing have all come from [Online Sequencer](https://onlinesequencer.net/). Thanks to its
+piano roll-style interface, it also serves as a good reference for comparing my note-to-frequency conversions and other modifications
+against each note from the input MIDI track.
+
+Something I noticed when parsing MIDI files is that the notes in the actual MIDI file appear to be one octave higher than the note
+displays in Online Sequencer's interface. For example, for the note `C5` on the web interface, the actual MIDI file data claims the note is `C4` (MIDI note number 60), meaning my frequency conversion would calculate the frequency at note `C4` instead.
+
+After browsing the [Online Sequencer Wiki](https://onlinesequencer.net/wiki/Online_Sequencer), I found its main article confirm that
+the sequencer tool is labeled "with 72 notes from C2-B7 (labelled differently from a piano, **C2 on the sequencer corresponds to C1**
+on a piano)". This statement confirms that the one octave difference in their web interface is simply a naming convention
+that doesn't affect the underlying frequency values since a note like `C2` in Online Sequencer corresponds to piano key `C1`.
+
+Online Sequencer labels notes one octave higher than the standard piano labeling that this Chiptune Synthesizer project follows. This
+entry serves as a reminder that the frequencies calculated from the MIDI file notes are accurate, and the notes being an octave higher
+on the Online Sequencer web interface is just a slightly different visualization of mapping frequencies to note numbers.
