@@ -16,6 +16,7 @@ to give a retro-esque feeling.
 | [Week 5](#week-5) | [Adaptive Tone Control](#11324---adaptive-tone-control)                 |
 | [Week 6](#week-6) | [Note to Frequency](#11924---note-to-frequency-program)                 |
 | [Week 7](#week-7) | [Envelope ADSR](#111324---envelope-adsr-program)                        |
+| [Week 8](#week-8) | [Chiptune Synthesizer](#111624---chiptune-synthesizer-midi-parsing)     |
 
 ## Week 1
 
@@ -411,3 +412,21 @@ sound output systems. Some other ideas to possibly experiment with after extract
 
 - Apply a vibrato frequency fluctuation on melody notes to make them feel more pronounced and definitive.
 - Introduce short bursts of (possibly neighboring) notes to add a "glitchy" feeling for background effects.
+
+## Week 8
+
+### 11/16/24 - Chiptune Synthesizer: MIDI Parsing
+
+With a background established from my previous programs, I decided to start my overall course project, located in the
+[`chiptune-synthesizer`](code/chiptune-synthesizer/) directory. After being suggested to take MIDI inputs, I started with figuring out
+how to process these MIDIs and extract note information.
+
+The `pretty_midi` library mentioned in the last entry seems promising due to its ability to organize notes together by the instrument
+that played them. The notes themselves contain pitch, velocity, start and end times I was looking for to eventually create chiptune
+waveforms with. This separation by instrument should make it simpler to apply different waveforms based on type, e.g. square waves for
+bass instruments.
+
+Currently, the program parses MIDI files and displays the properties that the `pretty_midi` library finds relevant, such as the
+instrument list and if any time/key signature changes are present. This print display was a test to ensure that the MIDI files
+I am providing were properly parsed. More info and credits on the MIDIs I am using is outlined in the project's
+[`README`](code/chiptune-synthesizer/README.md).
