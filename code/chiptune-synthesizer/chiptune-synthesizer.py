@@ -2,7 +2,7 @@ import numpy as np
 import sounddevice as sd
 from scipy import signal
 from scipy.io.wavfile import write
-import pretty_midi # Currnetly incompatible with Python 3.12: https://github.com/craffel/pretty-midi/pull/252
+import pretty_midi # 0.2.10 release incompatible with Python 3.12: https://github.com/craffel/pretty-midi/pull/252
 import os
 
 SAMPLE_RATE = 44100
