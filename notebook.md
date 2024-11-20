@@ -408,10 +408,7 @@ the intensity or volume for each note, which can be mapped to ADSR parameters.
 
 To further emphasize the chiptune aesthetic, I was suggested to add "chiptune noise" alongside the MIDI note conversion. I took this
 as perhaps adding a layer of noise percussion (e.g. white noise) to mimic sharp snares that retro music tend to express due to limited
-sound output systems. Some other ideas to possibly experiment with after extracting the MIDI notes:
-
-- Apply a vibrato frequency fluctuation on melody notes to make them feel more pronounced and definitive.
-- Introduce short bursts of (possibly neighboring) notes to add a "glitchy" feeling for background effects.
+sound output systems.
 
 ## Week 8
 
@@ -448,3 +445,48 @@ that doesn't affect the underlying frequency values since a note like `C2` in On
 Online Sequencer labels notes one octave higher than the standard piano labeling that this Chiptune Synthesizer project follows. This
 entry serves as a reminder that the frequencies calculated from the MIDI file notes are accurate, and the notes being an octave higher
 on the Online Sequencer web interface is just a slightly different visualization of mapping frequencies to note numbers.
+
+### 11/19/24 - MIDI Program Numbers
+
+Today, I began the functionality in my **Chiptune Synthesizer** project to generate basic waveforms based on the information of each
+note per MIDI instrument. As mentioned in earlier entries, I wanted to incorporate multiple musical parts, such as a melody, bassline,
+and percussion for greater musical expression and allow me to use different waveforms for each part.
+
+The `pretty_midi` library I'm using fortunately provides an `is_drum` boolean for each instrument, allowing me to easily
+determine which instrument notes will go under the percussion wave track. For non-drum instruments, I had to figure out which
+ones become a melody or bassline. This is where the `program` of an instrument comes in.
+
+[General MIDI](https://en.wikipedia.org/wiki/General_MIDI) (GM) is a format many electronic musical tools adhere to. Within these
+conventions, there are 128 instrument sound programs organized by type, e.g. piano, organ, guitar, bass, etc. As such, I can apply
+specific waveforms depending on the program number of the instrument as I increment through each one from the input MIDI.
+
+To make the bassline part I wanted to do, I would determine which instruments contain a program number between 32-39 (GM states bass
+is 33-40, we're accounting for zero indexing), then apply a basic waveform exclusive to that set of instruments. This
+[Soundation article](https://soundation.com/music-genres/how-to-make-chiptunes) on how to make chiptune music reinforced my idea  
+that triangle waves' more rounded and softer sound nature befits the backline complement role that bassline instruments often serve.
+
+### 11/19/24 - Online Sequencer MIDI Export Shenanigans
+
+With my research towards MIDI program numbers in the previous entry, I wanted to confirm if Online Sequencer, the tool where I've
+retrieved all of my input MIDIs to test the chiptune synthesizer, followed the General MIDI (GM) requirements. I ended up sequencing
+singular notes for every instrument Online Sequencer offered, then ran those exported MIDIs through my project, logging the program
+number for each instrument.
+
+The exported MIDIs I sequenced are contained in the [`midi-assets/instruments`](code/chiptune-synthesizer/midi-assets/instruments/)
+directory of the project, while the results of my testing is outlined in [`program-info.md`](code/chiptune-synthesizer/midi-assets/instruments/program-info.md) within the same folder. Although Online Sequencer names its instruments differently, there's a
+noticeable correlation with the GM program numbers.
+
+For instance, Online Sequencer's _Acoustic Guitar Classic_ instrument has a program number of 24, which seemingly aligns with GM's _Acoustic Guitar (nylon)_ of program 25 (difference by 1 due to zero indexing). So it is safe to say that Online Sequencer
+sufficiently adheres to the GM specifications despite their deviated naming conventions.
+
+However, I found an issue with 1 of Online Sequencer's [58 instruments](https://onlinesequencer.net/wiki/Instruments), specifically
+the **synthesizer** instrument in the electronic category. The libraries I use to parse MIDIs (`pretty_midi` and `mido`) are unable to
+process MIDIs that contain this instrument, raising an `OSError: data byte must be in range 0..127`.
+Some [discussions](https://github.com/mido/mido/issues/63#issuecomment-253860552) explain that MIDI data bytes should never be larger
+than 127, so it appears that this synthesizer instrument isn't properly transcripted when exporting an Online Sequencer track to a
+MIDI file.
+
+Given the popularity of the `mido` library and that this problem only occurs with a singular instrument, I'm inclined to agree that
+this particular instrument causes corruption that is more the fault of the Online Sequencer tool's export abilities than this
+project's MIDI processing library. With this error acknowledged, I believe my chiptune synthesizer program behaves as expected,
+properly throwing an error when encountering corrupt MIDIs.
