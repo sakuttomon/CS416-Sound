@@ -462,8 +462,8 @@ specific waveforms depending on the program number of the instrument as I increm
 
 To make the bassline part I wanted to do, I would determine which instruments contain a program number between 32-39 (GM states bass
 is 33-40, we're accounting for zero indexing), then apply a basic waveform exclusive to that set of instruments. This
-[Soundation article](https://soundation.com/music-genres/how-to-make-chiptunes) on how to make chiptune music reinforced my idea  
-that triangle waves' more rounded and softer sound nature befits the backline complement role that bassline instruments often serve.
+[Soundation article](https://soundation.com/music-genres/how-to-make-chiptunes) on how to make chiptune music reinforces my idea
+that triangle waves' more rounded and softer nature fits with the backline complementary role that bassline instruments often serve.
 
 ### 11/19/24 - Online Sequencer MIDI Export Shenanigans
 
@@ -481,7 +481,12 @@ sufficiently adheres to the GM specifications despite their deviated naming conv
 
 However, I found an issue with 1 of Online Sequencer's [58 instruments](https://onlinesequencer.net/wiki/Instruments), specifically
 the **synthesizer** instrument in the electronic category. The libraries I use to parse MIDIs (`pretty_midi` and `mido`) are unable to
-process MIDIs that contain this instrument, raising an `OSError: data byte must be in range 0..127`.
+process MIDIs that contain this instrument, raising the error:
+
+```python
+OSError: data byte must be in range 0..127
+```
+
 Some [discussions](https://github.com/mido/mido/issues/63#issuecomment-253860552) explain that MIDI data bytes should never be larger
 than 127, so it appears that this synthesizer instrument isn't properly transcripted when exporting an Online Sequencer track to a
 MIDI file.
