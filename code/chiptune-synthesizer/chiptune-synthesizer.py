@@ -1,9 +1,10 @@
 import numpy as np
+import os
+import pretty_midi # 0.2.10 release incompatible with Python 3.12: https://github.com/craffel/pretty-midi/pull/252
 import sounddevice as sd
 from scipy import signal
 from scipy.io.wavfile import write
-import pretty_midi # 0.2.10 release incompatible with Python 3.12: https://github.com/craffel/pretty-midi/pull/252
-import os
+from typing import List
 
 SAMPLE_RATE = 44100
 
@@ -22,16 +23,22 @@ class MidiToChiptune:
         
         # Get all the information pretty_midi parses
         self.data = pretty_midi.PrettyMIDI(file)
-        self.instruments = self.data.instruments # Contains notes under each
+        self.instruments: List[pretty_midi.Instrument] = self.data.instruments # Contains notes under each
         self.time_signatures = self.data.time_signature_changes
         self.key_signatures = self.data.key_signature_changes
+
+        # Waveforms to construct chiptune tunes with
+        self.melody_wave, self.bass_wave, self.percussion_wave = [], [], []
     
     def midiNoteToFrequency(self, midi_note):
         """
         Converts a MIDI note number to its corresponding frequency value.
 
         Args:
-            midi_node (int): The pitch from a MIDI note to calculate a frequency from.
+            midi_note (int): The pitch from a MIDI note to calculate a frequency from.
+        
+        Returns:
+            float: The corresponding frequency to the MIDI note number.
         """
         # Baseline key A4 is represented as MIDI note 69
         return 440.0 * (2 ** ((midi_note - 69) / 12))
@@ -51,7 +58,8 @@ class MidiToChiptune:
 
         print('\nInstruments:')
         for instrument in self.instruments:
-            print(f"{instrument.name} has {len(instrument.notes)} notes")
+            is_drum = ", is a drum" if instrument.is_drum else ''
+            print(f"{instrument.name} has {len(instrument.notes)} notes, Program {instrument.program}{is_drum}")
             # for note in instrument.notes:
             #     print(note.pitch)
             #     print(f"{self.midiNoteToFrequency(note.pitch)}")
@@ -93,7 +101,52 @@ class MidiToChiptune:
             return volume * np.sin(2 * np.pi * frequency * time)
 
         raise Exception(f"{waveform} is not a supported waveform to generate.")
+    
+    def generateMelodyOrBassline(self, notes: List[pretty_midi.Note], program):
+        """
+        Given all notes from an instrument in the input MIDI, generate a wave to add to the melody
+        or bassline tracks. Whether a melody or bassline is generated depends on instrument's program number.
+        """
+        for note in notes:
+            frequency = self.midiNoteToFrequency(note.pitch)
+            duration = note.end - note.start
+            # Normalize velocity, MIDI considers 127 the maximum strength a note was hit
+            velocity = note.velocity / 127.0
+
+            # General MIDI format states bass instruments from 33-40, -1 to account for zero indexing 
+            if program in range(32, 40):
+                # Triangle waves are softer, more fit for bassline
+                # https://soundation.com/music-genres/how-to-make-chiptunes
+                wave = self.generateWave(frequency, duration, waveform='triangle', volume=velocity)
+                self.bass_wave.append(wave)
+            
+            # All other instruments used for melody (piano, orchestra, non-bass guitars, etc.)
+            else:
+                # Square waves make sharp distinct sounds fitting for a melody
+                wave = self.generateWave(frequency, duration, waveform='square', volume=velocity)
+                self.melody_wave.append(wave)
+
+    def generatePercussion(self):
+        pass
+
+    def midiToChiptune(self):
+        """
+        The process to generate a chiptune track for an input MIDI file. For every instrument from the MIDI, 
+        populates melody, bassline, and percussion tracks with basic waveforms based on each note's pitch, velocity, 
+        and duration. Then, combines each part to construct the complete chiptune wave resembling the input MIDI.
+
+        Returns:
+            np.ndarray: Combined waveform of melody, bassline, and percussion constructed using chiptune waveforms. 
+        """        
+        for instrument in self.instruments:
+             # Drums don't use frequency / note pitch, generate a percussive noise based on note pitch
+             if instrument.is_drum:
+                pass
+             
+             # Melodic and bassline notes, determine which part based on MIDI program
+             else:
+                self.generateMelodyOrBassline(instrument.notes, instrument.program)
 
 if __name__ == "__main__":
-    synth = MidiToChiptune("Kirby's Return to Dreamland - Channel Menu.mid")
+    synth = MidiToChiptune("midi-assets/Kirby's Return to Dreamland - Channel Menu.mid")
     synth.printMidiInfo()
