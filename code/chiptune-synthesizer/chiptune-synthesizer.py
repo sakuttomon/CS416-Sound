@@ -9,6 +9,9 @@ from typing import List
 # The sample rate to produce chiptune audio with.
 SAMPLE_RATE = 44100
 
+# The multiplier to apply to the resulting chiptune track, for reducing overall volume if too loud.
+LOUDNESS = 0.40
+
 # Currently supported drum sounds for chiptune synthesis, following the percussion key map from:
 # https://en.wikipedia.org/wiki/General_MIDI#Percussion
 DRUM_KEY_MAP = {
@@ -256,12 +259,18 @@ class MidiToChiptune:
                 self.generateMelodyOrBassline(instrument.notes, instrument.program)
         
         self.full_wave = self.melody_wave + self.bass_wave + self.percussion_wave
+
         # Due to additive synthesis (overlaying waves on top of each other), normalize to prevent clipping
         self.full_wave = self.full_wave / np.max(np.abs(self.full_wave))
+        self.full_wave = np.tanh(self.full_wave) # Softly limit range to prevent peaks
+        self.full_wave *= LOUDNESS
 
 if __name__ == "__main__":
-    synth = MidiToChiptune("midi-assets/Kirby's Return to Dreamland - Channel Menu.mid")
+    synth = MidiToChiptune("midi-assets/Raise (One Piece ED 19) Ringtone.mid")
     synth.printMidiInfo()
     synth.midiToChiptune()
     sd.play(synth.full_wave, samplerate=SAMPLE_RATE)
     sd.wait()
+
+    # Save to WAV
+    write("output-wavs/Raise (One Piece ED 19) Ringtone.wav", SAMPLE_RATE, (synth.full_wave * 32767).astype(np.int16))
