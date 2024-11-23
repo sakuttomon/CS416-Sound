@@ -54,6 +54,9 @@ class MidiToChiptune:
 
         # Final wave to sum above musical parts into
         self.chiptune_wave = np.zeros(self.track_length)
+
+        # Perform the chiptune synthesis, storing result in chiptune_wave
+        self.midiToChiptune()
     
     def calculateTrackLength(self):
         """
@@ -328,7 +331,6 @@ class MidiToChiptune:
 if __name__ == "__main__":
     synth = MidiToChiptune("midi-assets/Raise (One Piece ED 19) Ringtone.mid")
     synth.printMidiInfo()
-    synth.midiToChiptune()
 
     print()
     synth.saveWAV()
