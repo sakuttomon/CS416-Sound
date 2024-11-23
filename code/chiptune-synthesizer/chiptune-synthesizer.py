@@ -34,7 +34,8 @@ class MidiToChiptune:
         Args:
             file (str): The MIDI file to process, parsed using the `pretty_midi` library.
         """
-        self.filename, file_extension = os.path.splitext(file)
+        self.file_path, file_extension = os.path.splitext(file)
+        self.track_name = os.path.basename(self.file_path)
         
         if not file_extension == '.mid':
             raise OSError('File must be a MIDI file (.mid)')
@@ -91,7 +92,7 @@ class MidiToChiptune:
         If the MIDI file contained any key or time signatures, also display the number of changes.
         """
         print("--------------------")
-        print(self.filename)
+        print(self.track_name)
 
         if self.time_signatures:
             print(f"{len(self.time_signatures)} time signature change{'s' if len(self.time_signatures) > 1 else ''}")
@@ -269,9 +270,9 @@ class MidiToChiptune:
         The process to generate a chiptune track for an input MIDI file. For every instrument from the MIDI, 
         populates melody, bassline, and percussion tracks with basic waveforms based on each note's pitch, velocity, 
         and duration. Then, combines each part to construct the complete chiptune wave resembling the input MIDI.
-
-        Returns:
-            np.ndarray: Combined waveform of melody, bassline, and percussion constructed using chiptune waveforms. 
+        
+        Populates the `melody_wave`, `bass_wave` and `percussion_wave` class variables to sum into the overall 
+        `chiptune_wave`, the final synthesized audio data.
         """        
         for instrument in self.instruments:
              if instrument.is_drum:
@@ -291,12 +292,44 @@ class MidiToChiptune:
         self.chiptune_wave = np.tanh(self.chiptune_wave) # Softly limit range to prevent peaks
         self.chiptune_wave *= LOUDNESS      
 
+    def saveWAV(self, output_path="output-wavs"):
+        """
+        Saves the `chiptune_wave` audio data array to a WAV file.
+
+        Args:
+            output_path (str): The file path to save the WAV file to. Defaults to `output-wavs/`
+        
+        Raises:
+            Exception: If `chiptune_wave` is not populated yet, inform user to run converter first.
+        """ 
+        # Convert to expected format WAV files expect
+        if self.chiptune_wave.any(): 
+            wav_chiptune_wave = (self.chiptune_wave * 32767).astype(np.int16)
+            write(f"{output_path}/{self.track_name}.wav", SAMPLE_RATE, wav_chiptune_wave)
+        else:
+            raise Exception("No chiptune audio to save. Please call midiToChiptune() before saving audio.")
+    
+    def playChiptune(self):
+        """
+        Plays the `chiptune_wave` to computer audio output using the `sounddevice` library.
+
+        Raises:
+            Exception: If `chiptune_wave` is not populated yet, inform user to run converter first.
+        """
+        if self.chiptune_wave.any():
+            print(f"♪♪♪\tPlaying {self.track_name}\t♪♪♪")
+            sd.play(synth.chiptune_wave, samplerate=SAMPLE_RATE)
+            sd.wait()
+            print(f"---\tFinished {self.track_name}\t---")
+
+        else:
+            raise Exception("No chiptune audio to play. Please call midiToChiptune() before playing audio.")
+
 if __name__ == "__main__":
     synth = MidiToChiptune("midi-assets/Raise (One Piece ED 19) Ringtone.mid")
     synth.printMidiInfo()
     synth.midiToChiptune()
-    sd.play(synth.chiptune_wave, samplerate=SAMPLE_RATE)
-    sd.wait()
 
-    # Save to WAV
-    write("output-wavs/Raise (One Piece ED 19) Ringtone.wav", SAMPLE_RATE, (synth.chiptune_wave * 32767).astype(np.int16))
+    print()
+    synth.saveWAV()
+    synth.playChiptune()
