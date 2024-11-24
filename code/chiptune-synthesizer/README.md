@@ -21,6 +21,11 @@ _Credits for songs I did not make myself is listed below._
 
 ## Credits
 
-The songs listed below are remixes or renditions of official soundtracks that Online Sequencer community members sequenced and shared within the tool. Credit to all of these tracks go to the original composers and franchises, along with the users who sequenced these tracks in Online Sequencer.
+Many of the songs listed below are remixes or renditions of official soundtracks that Online Sequencer community members sequenced and
+shared within the tool. Credit to all of these tracks go to the original composers and franchises, along with the users who sequenced
+these tracks in Online Sequencer.
 
+- _Bright Sandstorm - Fire Emblem Engage_, by Anonymous: https://onlinesequencer.net/3657022
 - _Kirby's Return to Dreamland - Channel Menu_, by theoneguy: https://onlinesequencer.net/2071395
+- _Oops, all Bass Guitar!_, by Buzzpip: https://onlinesequencer.net/3988662
+- _Raise (One Piece ED 19) Ringtone_, by Wacky: https://onlinesequencer.net/3580111

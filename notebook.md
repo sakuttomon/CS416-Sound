@@ -495,3 +495,51 @@ Given the popularity of the `mido` library and that this problem only occurs wit
 this particular instrument causes corruption that is more the fault of the Online Sequencer tool's export abilities than this
 project's MIDI processing library. With this error acknowledged, I believe my chiptune synthesizer program behaves as expected,
 properly throwing an error when encountering corrupt MIDIs.
+
+### 11/21/24 - Percussion Key Map
+
+With the knowledge of MIDI program numbers from the prior entries, I configured my chiptune synthesizer to apply triangle waves
+for bass instruments, sawtooth waves for orchestral instruments, and square waves for others. Triangle waves would construct the
+bassline audio, while sawtooth and square waves compose the melody.
+
+An instrument unlike the others is the drum, which is where a percussion wave comes in. Percussion instruments are "noise-based",
+meaning we do not necessarily need to rely on a note's frequency to generate a basic waveform with. Instead, the General MIDI standard
+determines the type of drum sound from the incoming note number: https://en.wikipedia.org/wiki/General_MIDI#Percussion
+
+Based on the note number of a given drum, I would then generate a wave of fixed frequency, or create a noise array of uniformly
+distributed points. There are a lot of different drums from the list above, so I chose to support **bass/kick**, **snare**,
+and **hi-hat** drums. These instruments appear to be more fundamental sounds when beginning to learn drums, as indicated by this
+[interactive tutorial](https://learningmusic.ableton.com/make-beats/what-are-these-sounds.html) from [Ableton](https://www.ableton.com/)
+about learning music beats.
+
+Bass drums produce a "thump" sound, so I chose to imitate this by generating a fixed low frequency sine wave, supported by this
+[article](https://www.musicguymixing.com/sine-wave-kick-drum/) explaining how sub 100Hz sine waves sounds like the thud you would hear
+from hitting a bass drum. For the snare and hi-hat drums, I opted to generate random white noise signals since short instances of this
+energetic buzz fit the sharp and bright crackle effect of these drums.
+
+I accomplished which drum sound to generate through a `DRUM_KEY_MAP` dictionary that maps note numbers to a configuration indicating
+the generation type (wave or noise) and a base volume multiplier. For example, for a MIDI input with an _Acoustic Bass Drum_ instrument
+(_808 Drum Kit_ in Online Sequencer), the note's pitch of `35` would map to the fixed low frequency sine wave that I employ for
+kick drum sounds.
+
+If a note pitch isn't supported in the chiptune synthesizer's `DRUM_KEY_MAP`, I chose to fallback to random noise, but with a miniscule
+base volume multiplier so that unsupported drum types have a subtler effect on the chiptune audio.
+
+### 11/22/24 - Generating Chiptune Waves, Playing & Writing Audio
+
+This [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/3) contains most of the code changes described throughout this week's
+entries. With constructed melody, bassline, and percussion waves, the overall chiptune wave would sum the three parts, combining every
+instrument back together. To prevent clipping from summing values, I normalized the audio data by dividing each element by the maximum.
+I noticed the resulting waves were very loud, so I applied a `LOUDNESS` multiplier to soften the output.
+
+Users can listen to the chiptunified track using either an audio player or save to WAV file function. Saved WAVs are stored in the
+[`output-wavs`](code/chiptune-synthesizer/output-wavs/) directory. The output files share the same song name from the input MIDI.
+
+The output audio sounds pretty satisfying! The audio feels very retro-esque, and I haven't found any obvious cases of clipping. I have
+noticed that when an input MIDI plays a lot of notes during the same timeframe, the chiptune version sounds amplified, likely due to the
+layering of basic waveforms - especially for square waves and their "beeping" characteristic. This is moreso an effect of translating
+more complex songs to a limited set of "chiptune instruments".
+
+Nonetheless, it undeniably sounds like chiptune music, so the minimum requirements I set for this project are accompished. With the
+foundations of a chiptune synthesizer established, I intend to look into further improvements or additions to enhance the musical depth
+or project structure.

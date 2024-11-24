@@ -6,7 +6,25 @@ from scipy import signal
 from scipy.io.wavfile import write
 from typing import List
 
+# The sample rate to produce chiptune audio with.
 SAMPLE_RATE = 44100
+
+# The multiplier to apply to the resulting chiptune track, for reducing overall volume if too loud.
+LOUDNESS = 0.40
+
+# Currently supported drum sounds for chiptune synthesis, following the percussion key map from:
+# https://en.wikipedia.org/wiki/General_MIDI#Percussion
+DRUM_KEY_MAP = {
+    # Acoustic Bass Drum
+    35: {"type": "wave", "frequency": 50, "waveform": "sine", "base_volume": 0.9},
+    # Electric Bass Drum
+    36: {"type": "wave", "frequency": 50, "waveform": "sine", "base_volume": 0.85},
+    38: {"type": "noise", "base_volume": 0.75}, # Acoustic Snare
+    40: {"type": "noise", "base_volume": 0.75}, # Electric Snare
+    42: {"type": "noise", "base_volume": 0.6}, # Closed Hi-Hat
+    44: {"type": "noise", "base_volume": 0.6}, # Pedal Hi-Hat
+    46: {"type": "noise", "base_volume": 0.6}, # Open Hi-Hat
+}
 
 class MidiToChiptune:
     def __init__(self, file):
@@ -16,7 +34,8 @@ class MidiToChiptune:
         Args:
             file (str): The MIDI file to process, parsed using the `pretty_midi` library.
         """
-        self.filename, file_extension = os.path.splitext(file)
+        self.file_path, file_extension = os.path.splitext(file)
+        self.track_name = os.path.basename(self.file_path)
         
         if not file_extension == '.mid':
             raise OSError('File must be a MIDI file (.mid)')
@@ -26,9 +45,36 @@ class MidiToChiptune:
         self.instruments: List[pretty_midi.Instrument] = self.data.instruments # Contains notes under each
         self.time_signatures = self.data.time_signature_changes
         self.key_signatures = self.data.key_signature_changes
+        self.track_length = self.calculateTrackLength()
 
         # Waveforms to construct chiptune tunes with
-        self.melody_wave, self.bass_wave, self.percussion_wave = [], [], []
+        self.melody_wave = np.zeros(self.track_length)
+        self.bass_wave = np.zeros(self.track_length)
+        self.percussion_wave = np.zeros(self.track_length)
+
+        # Final wave to sum above musical parts into
+        self.chiptune_wave = np.zeros(self.track_length)
+
+        # Perform the chiptune synthesis, storing result in chiptune_wave
+        self.midiToChiptune()
+    
+    def calculateTrackLength(self):
+        """
+        Calculates the total duration of the input MIDI track in samples. Necessary for constructing the
+        chiptune waveform arrays so that waves can be placed between where a given note starts and ends.
+
+        Returns:
+            int: The highest end time of a note among all instruments multiplied by `SAMPLE_RATE`, 
+            indicating total duration.
+        
+        Raises:
+            Exception: If there are no instruments, there is no note data and thus nothing to calculate length for.
+        """
+        if self.instruments:
+            max_end_time = max(max(note.end for note in instrument.notes) for instrument in self.instruments)
+            return int(max_end_time * SAMPLE_RATE)
+
+        raise Exception("Input MIDI has no instruments and thus no note data.")
     
     def midiNoteToFrequency(self, midi_note):
         """
@@ -49,7 +95,7 @@ class MidiToChiptune:
         If the MIDI file contained any key or time signatures, also display the number of changes.
         """
         print("--------------------")
-        print(self.filename)
+        print(self.track_name)
 
         if self.time_signatures:
             print(f"{len(self.time_signatures)} time signature change{'s' if len(self.time_signatures) > 1 else ''}")
@@ -102,51 +148,190 @@ class MidiToChiptune:
 
         raise Exception(f"{waveform} is not a supported waveform to generate.")
     
+    def generateNoise(self, duration, volume):
+        """
+        Generates white noise for percussion sounds.
+        
+        Args:
+            duration (float): Duration to play the noise in seconds.
+            volume (float): Volume to scale noise (0 to 1).
+        """
+        # Random values to simulate noise, stay within -1 to 1 amplitude to align with normalization
+        return volume * np.random.uniform(-1, 1, int(SAMPLE_RATE * duration))
+    
+    def generateDrumSound(self, pitch, duration, velocity):
+        """
+        Generates a drum effect based on the percussive sound determined by an input note's pitch.
+        References the `DRUM_KEY_MAP` for supported note numbers / drum types.
+
+        Args:
+            pitch (int): The MIDI note pitch to determine which type of drum sound is generated.
+            duration (float): Duration of the input note in seconds. 
+            velocity (int): The strength the input note, used to determine volume multiplier.
+
+        Returns:
+            wave (np.ndarray): A sine wave or noise wave array to use as the drum sound for the notes 
+            of a percussion instrument.
+        """
+        # Determine the drum sound based on pitch, default to a quieter sound for unsupported drum types
+        drum_config = DRUM_KEY_MAP.get(pitch, {"type": "unsupported", "base_volume": 0.3})
+        volume = velocity * drum_config["base_volume"]
+
+        # For bass drums, sine waves in sub 100Hz range simulate the low-pitched thump of a kick drum
+        # https://www.musicguymixing.com/sine-wave-kick-drum/
+        if drum_config["type"] == "wave":
+            wave = self.generateWave(drum_config["frequency"], duration, drum_config["waveform"], volume)
+        else:
+            # Simulate the short bursts of noise-based drum sounds. Unsupported drum pitches sound quieter.
+            wave = self.generateNoise(duration, volume)
+        
+        return wave
+    
+    def generatePercussion(self, notes: List[pretty_midi.Note]):
+        """
+        Given all notes from an instrument in the input MIDI, generates a percussion waveform or noise wave.
+        The type and base volume of the drum sound to generate depends on the a given note's pitch / key number, 
+        in addition to whether the note key is supported in `DRUM_KEY_MAP`.
+
+        Args:
+            notes (List[Note]): Array of notes to derive information from for generating chiptune noises.
+        
+        Returns:
+            percussion_parts: Audio data containing the generated percussive waveform or noises.
+        """
+        percussion_parts = np.zeros(self.track_length)
+
+        for note in notes:
+            duration = note.end - note.start
+            velocity = note.velocity / 127.0
+            
+            # Obtain either a waveform (bass drums) or noise wave (other drums).
+            wave = self.generateDrumSound(note.pitch, duration, velocity)
+
+            # Add part to percussion track during its timeslot
+            start_sample = int(note.start * SAMPLE_RATE)
+            end_sample = start_sample + len(wave)
+            
+            percussion_parts[start_sample:end_sample] += wave[:len(percussion_parts) - start_sample]
+        
+        # Contains chiptune audio data for percussive instruments
+        return percussion_parts
+
     def generateMelodyOrBassline(self, notes: List[pretty_midi.Note], program):
         """
-        Given all notes from an instrument in the input MIDI, generate a wave to add to the melody
-        or bassline tracks. Whether a melody or bassline is generated depends on instrument's program number.
+        Given all notes from an instrument in the input MIDI, generates a basic waveform to serve as the melody
+        or bassline for this instrument of the chiptune synthesis. Whether a melody or bassline is generated depends 
+        on the instrument's program number.
+
+        Args:
+            notes (List[Note]): Array of notes to derive information from for generating a chiptune wave.
+            program (int): The program number of the MIDI instrument.
+        
+        Returns:
+            tuple (melody_parts, bass_parts): Audio data containing the generated waveform for either the melody 
+            or bassline.
         """
+        melody_parts = np.zeros(self.track_length)
+        bass_parts = np.zeros(self.track_length)
+
+        # General MIDI Program Numbers: https://en.wikipedia.org/wiki/General_MIDI#Program_change_events
+        waveform = None
+        if program in range(32, 40): # Bass instruments from 33-40, -1 to account for zero indexing 
+            # Triangle waves softer, fit for bassline: https://soundation.com/music-genres/how-to-make-chiptunes
+            waveform = "triangle"
+        elif program in range(40, 80): # Strings, Ensemble, Brass, Reed, and Pipe labeled 41-80, -1 for zero indexing
+            # Sawtooth best for bowed instruments: https://en.wikipedia.org/wiki/Sawtooth_wave
+            waveform = "sawtooth"
+        else: # All other instruments used for melody (piano, etc.)
+            waveform = "square" # Square waves make sharp distinct sounds fitting for a melody
+
+        # Apply waveform on each note played by the instrument
         for note in notes:
             frequency = self.midiNoteToFrequency(note.pitch)
             duration = note.end - note.start
             # Normalize velocity, MIDI considers 127 the maximum strength a note was hit
             velocity = note.velocity / 127.0
 
-            # General MIDI format states bass instruments from 33-40, -1 to account for zero indexing 
-            if program in range(32, 40):
-                # Triangle waves are softer, more fit for bassline
-                # https://soundation.com/music-genres/how-to-make-chiptunes
-                wave = self.generateWave(frequency, duration, waveform='triangle', volume=velocity)
-                self.bass_wave.append(wave)
-            
-            # All other instruments used for melody (piano, orchestra, non-bass guitars, etc.)
-            else:
-                # Square waves make sharp distinct sounds fitting for a melody
-                wave = self.generateWave(frequency, duration, waveform='square', volume=velocity)
-                self.melody_wave.append(wave)
+            # Construct waveform data
+            wave = self.generateWave(frequency, duration, waveform, volume=velocity)
+            # TODO: Apply ADSR envelope to wave
 
-    def generatePercussion(self):
-        pass
+            # Place waveforms in the appropriate track timeslot
+            start_sample = int(note.start * SAMPLE_RATE)
+            end_sample = start_sample + len(wave)
+            
+            if waveform == "triangle": # Bass
+                bass_parts[start_sample:end_sample] += wave[:len(bass_parts) - start_sample]
+            else: # Melody (square or sawtooth)
+                melody_parts[start_sample:end_sample] += wave[:len(melody_parts) - start_sample]
+        
+        # Contains chiptune audio data for melody and bassline instruments
+        return melody_parts, bass_parts
 
     def midiToChiptune(self):
         """
         The process to generate a chiptune track for an input MIDI file. For every instrument from the MIDI, 
         populates melody, bassline, and percussion tracks with basic waveforms based on each note's pitch, velocity, 
         and duration. Then, combines each part to construct the complete chiptune wave resembling the input MIDI.
-
-        Returns:
-            np.ndarray: Combined waveform of melody, bassline, and percussion constructed using chiptune waveforms. 
+        
+        Populates the `melody_wave`, `bass_wave` and `percussion_wave` class variables to sum into the overall 
+        `chiptune_wave`, the final synthesized audio data.
         """        
         for instrument in self.instruments:
-             # Drums don't use frequency / note pitch, generate a percussive noise based on note pitch
              if instrument.is_drum:
-                pass
-             
-             # Melodic and bassline notes, determine which part based on MIDI program
+                # Drums don't use frequency / note pitch, generate a percussive noise based on note pitch
+                self.percussion_wave += self.generatePercussion(instrument.notes)
              else:
-                self.generateMelodyOrBassline(instrument.notes, instrument.program)
+                # Melodic and bassline notes, determine which part based on MIDI program
+                melody_parts, bass_parts = self.generateMelodyOrBassline(instrument.notes, instrument.program)
+                self.melody_wave += melody_parts
+                self.bass_wave += bass_parts
+        
+        # Construct final wave, combine all instruments back together
+        self.chiptune_wave = self.melody_wave + self.bass_wave + self.percussion_wave
+
+        # Due to additive synthesis (overlaying waves on top of each other), normalize to prevent clipping
+        self.chiptune_wave = self.chiptune_wave / np.max(np.abs(self.chiptune_wave))
+        self.chiptune_wave = np.tanh(self.chiptune_wave) # Softly limit range to prevent peaks
+        self.chiptune_wave *= LOUDNESS      
+
+    def saveWAV(self, output_path="output-wavs"):
+        """
+        Saves the `chiptune_wave` audio data array to a WAV file.
+
+        Args:
+            output_path (str): The file path to save the WAV file to. Defaults to `output-wavs/`
+        
+        Raises:
+            Exception: If `chiptune_wave` is not populated yet, inform user to run converter first.
+        """ 
+        # Convert to expected format WAV files expect
+        if self.chiptune_wave.any(): 
+            wav_chiptune_wave = (self.chiptune_wave * 32767).astype(np.int16)
+            write(f"{output_path}/{self.track_name}.wav", SAMPLE_RATE, wav_chiptune_wave)
+        else:
+            raise Exception("No chiptune audio to save. Please call midiToChiptune() before saving audio.")
+    
+    def playChiptune(self):
+        """
+        Plays the `chiptune_wave` to computer audio output using the `sounddevice` library.
+
+        Raises:
+            Exception: If `chiptune_wave` is not populated yet, inform user to run converter first.
+        """
+        if self.chiptune_wave.any():
+            print(f"♪♪♪\tPlaying {self.track_name}\t♪♪♪")
+            sd.play(synth.chiptune_wave, samplerate=SAMPLE_RATE)
+            sd.wait()
+            print(f"---\tFinished {self.track_name}\t---")
+
+        else:
+            raise Exception("No chiptune audio to play. Please call midiToChiptune() before playing audio.")
 
 if __name__ == "__main__":
-    synth = MidiToChiptune("midi-assets/Kirby's Return to Dreamland - Channel Menu.mid")
+    synth = MidiToChiptune("midi-assets/Raise (One Piece ED 19) Ringtone.mid")
     synth.printMidiInfo()
+
+    print()
+    synth.saveWAV()
+    synth.playChiptune()
