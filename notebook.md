@@ -3,9 +3,10 @@
 A document containing notes or reflections about the work and progress done throughout the course, organized by each week and the
 estimated date where such activities occured or finished. Notes taken from lectures are contained in the [`lectures.md`](lectures.md) file.
 
-Ideas for my overall course project were conjectured in this [entry](#11424---project-ideas-thought-process). The current plan is to
-develop a **Chiptune Synthesizer** that will take music note input from a user and apply basic waveforms to synthesize the notes
-to give a retro-esque feeling.
+Ideas for my overall course project were conjectured in this [entry](#11424---project-ideas-thought-process). The project is a
+**Chiptune Synthesizer** that will take a MIDI file as input, and for each instrument, generate basic waveforms referring to the
+original note data. Combining the waveforms together results in a chiptune wave, containing synthesized notes that sounds like the
+input MIDI, but with a retro-esque touch.
 
 | Table of Contents | Projects                                                                |
 | ----------------- | ----------------------------------------------------------------------- |
