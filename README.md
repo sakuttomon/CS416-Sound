@@ -9,15 +9,15 @@ A student portfolio containing all the assignments, activities, and projects per
 
 ## Chiptune Synthesizer - Course Project
 
-The overall course project I chose to do is a Chiptune Synthesizer, which takes in an input MIDI and "converts" the audio to a chiptune style, synthesizing basic waveforms based on each note's data. Located in the [**`chiptune-synthezier`**](code/chiptune-synthesizer/) directory.
+The overall course project I chose to do is a _Chiptune Synthesizer_, which takes in an input MIDI and "converts" the audio to a chiptune style, synthesizing basic waveforms based on each note's data. Located in the [**`chiptune-synthezier`**](code/chiptune-synthesizer/) directory.
 
 ## Portfolio Objectives
 
 The following code projects were assigned by the professor as part of the course.
 
-- [**`Clipped`**](code/clipped)
-- [**`Adaptive Tone Control`**](code/tone-control)
-- [**`Popgen`**](code/popgen)
+- [_`Clipped`_](code/clipped)
+- [_`Adaptive Tone Control`_](code/tone-control)
+- [_`Popgen`_](code/popgen)
 
 ## Self Projects
 
