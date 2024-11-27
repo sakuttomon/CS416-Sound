@@ -1,8 +1,9 @@
 # "Pop Music Generator"
-# Bart Massey 2024
+# Bart Massey 2024, extended by Irvin Lu
 #
-# This script puts out four bars in the "Axis Progression" chord loop,
-# with a melody and bass line.
+# This script puts out four bars in the "Axis Progression" chord loop, with a melody and bass line.
+# The following extensions were added:
+#   - Use a more interesting waveform than sine waves.
 
 import argparse, random, re, wave
 import numpy as np
@@ -66,7 +67,7 @@ ap.add_argument('--samplerate', type=int, default=48_000)
 ap.add_argument('--root', type=parse_note, default="C[5]")
 ap.add_argument('--bass-octave', type=int, default=2)
 ap.add_argument('--balance', type=parse_linear_knob, default="5")
-ap.add_argument('--gain', type=parse_db, default="-3")
+ap.add_argument('--gain', type=parse_db, default="-25") # Made default gain quieter for more (personally) bearable volume
 ap.add_argument('--output')
 ap.add_argument("--test", action="store_true", help=argparse.SUPPRESS)
 args = ap.parse_args()
@@ -128,11 +129,25 @@ def pick_notes(chord_root, n=4):
 
 # Given a MIDI key number and an optional number of beats of
 # note duration, return a sine wave for that note.
-def make_note(key, n=1):
+def make_note(key, n=1, waveform='sine'):
+    """
+    Extensions:
+    - Used more interesting waveforms than purely sine waves
+    """
     f = 440 * 2 ** ((key - 69) / 12)
     b = beat_samples * n
     cycles = 2 * np.pi * f * b / samplerate
     t = np.linspace(0, cycles, b)
+
+    if waveform == 'triangle':
+        # Triangle Wave Formula: https://en.wikipedia.org/wiki/Triangle_wave
+        # x(t) = 2 | 2(t/p - floor(t/p + 1/2) | - 1
+        return 2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
+    
+    elif waveform == 'square':
+        return np.sign(np.sin(t))
+    
+    # Default to sine wave
     return np.sin(t)
 
 # Play the given sound waveform using `sounddevice`.
@@ -180,10 +195,10 @@ if args.test:
 sound = np.array([], dtype=np.float64)
 for c in chord_loop:
     notes = pick_notes(c - 1)
-    melody = np.concatenate(list(make_note(i + melody_root) for i in notes))
+    melody = np.concatenate(list(make_note(i + melody_root, waveform='square') for i in notes))
 
     bass_note = note_to_key_offset(c - 1)
-    bass = make_note(bass_note + bass_root, n=4)
+    bass = make_note(bass_note + bass_root, n=4, waveform='triangle')
 
     melody_gain = args.balance
     bass_gain = 1 - melody_gain

@@ -18,7 +18,7 @@ input MIDI, but with a retro-esque touch.
 | [Week 6](#week-6) | [Note to Frequency](#11924---note-to-frequency-program)                 |
 | [Week 7](#week-7) | [Envelope ADSR](#111324---envelope-adsr-program)                        |
 | [Week 8](#week-8) | [Chiptune Synthesizer](#111624---chiptune-synthesizer-midi-parsing)     |
-| [Week 9](#week-9) |                                                                         |
+| [Week 9](#week-9) | [Popgen](#112624---popgen-triangle-waves)                               |
 
 ## Week 1
 
@@ -337,3 +337,33 @@ or project structure.
 
 To reduce the complexity of interleaving lecture notes with project diary entries, I chose to move all of my _Notes_ from class lectures
 to [`lectures.md`](lectures.md). This notebook is now dedicated to documenting experiences from code projects and portolio objectives.
+
+### 11/26/24 - Popgen: Triangle Waves
+
+I started the Popgen portfolio objective, contained in the [**`popgen`**](code/popgen/) code directory. Due to its similarities with
+my _Chiptune Synthesizer_ course project in terms of note manipulation, I wanted to bring over some techniques to see how the code would
+operate in a slightly different environment of generated chords versus processing an input MIDI.
+
+One of the tasks is to "Use a more interesting waveform than sine waves", which aligns with how I used triangle waves for basslines and
+square waves for melodies in my chiptune synthesizer. I incorporated this logic into the `popgen` code, but this time I wanted to try
+calculating the triangle wave purely through `numpy` instead of relying on `scipy.signal`.
+
+The [formula](https://en.wikipedia.org/wiki/Triangle_wave) for a triangle wave of period $p$ and time $t$ spanning the range [-1, 1]
+is as follows:
+
+$$
+x(t) = 2 * | 2 * (t/p - \lfloor t/p + 1/2 \rfloor) | - 1
+$$
+
+$t/p$ divides time by the period, resulting in cycles that `popgen` already calculates and accounts for in the time array `t`.
+The sub-equation $t/p - \lfloor t/p + 1/2 \rfloor$ generates a [sawtooth wave](https://en.wikipedia.org/wiki/Sawtooth_wave)
+in the range [-0.5, 0.5]. Multiplying by 2 then stretches the range to [-1, 1]. The absoulate value operation restricts the range
+to [0, 1], but creates the upward and downward slopes of a traingle, as an [absoulte value function](https://en.wikipedia.org/wiki/Absolute_value#/media/File:Absolute_value.svg) normally does when plotted.
+Finally, the outer multiplication by $2$ changes the range to [0, 2], and the $-1$ brings the range back to [-1, 1] to fit within
+normalized amplitude.
+
+Translating this into code, the $t/p - \lfloor t/p + 1/2 \rfloor$ retrieves the fractional parts of the signal. An equivalent to achieve this is to **modulo** $t/p$ by $1$. `mod 1` will reset time $t$ back to period $p$ once time exceeds the period, ensuring the waveform resets every $p$ seconds, creating the repeating triangle pattern over time.
+
+```python
+2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
+```
