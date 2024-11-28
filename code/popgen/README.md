@@ -15,3 +15,8 @@ implementations are documented in Week 9 of [**`notebook.md`**](../../notebook.m
 
 - **Use a more interesting waveform than sine waves** - Added a `waveform` parameter to the note creation function that determines whether a triangle, square, or sine (default) wave is generated for the given note. Applied square waves on the melody and triangle waves on the bass parts.
   - _Generated result into [`more-waveforms.wav`](more-waveforms.wav)_
+- **Get rid of the note clicking by adding a bit of envelope** - Added an `apply_envelope()` function to apply on a generated waveform to manipulate the sound dynamics of a given note. The ADSR parameters are fixed in the code, but different values are passed into the melody and bassline generation.
+  - **Melody** is designed to sound "omnipresent" with a gradually ramping attack and high sustain level to keep these notes at the forefront. A shorter release is applied to make the melody sound precise and defining.
+  - **Bass** is designed to "punch" with a short attack and decay, but with a longer release and lower sustain level to smoothly drift the bassline and give a complementary feel to the melody.
+  - _Square Wave Melody, Triangle Wave Bass generated into [`square-triangle-envelope.wav`](square-triangle-envelope.wav)_
+  - _Sine Wave Melody, Triangle Wave Bass generated into [`sine-triangle-envelope.wav`](sine-triangle-envelope.wav)_

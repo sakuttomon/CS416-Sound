@@ -367,3 +367,26 @@ Translating this into code, the $t/p - \lfloor t/p + 1/2 \rfloor$ retrieves the 
 ```python
 2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
 ```
+
+### 11/27/24 - Popgen: ADSR Envelope
+
+I originally planned to implement an ADSR envelope into my chiptune synthesizer, so I figured I'd prove out the concept in this popgen
+portfolio objective and satisfy the task to "Get rid of the note clicking by adding a bit of envelope." Most of the code is repurposed
+from my approach in [`envelope-adsr`](code/envelope-adsr/), so I mainly played around with ADSR values until the output sounded enjoyable.
+
+I decided to code two sets of fixed values, one for the melody and another for the bass, to try and produce different feelings of music. More details of the ADSR design is described in the code directory [`README`](code/popgen/README.md).
+
+Since I already implemented support for other waveforms, I experimented with how a given set of ADSR parameters affect different
+combinations of waveforms on the melody and bassline. I ended up really liking the soothing feeling of a sine wave melody and triangle
+wave bass, so I pushed up [`sine-triangle-envelope.wav`](code/popgen/sine-triangle-envelope.wav) to demonstrate how this set of ADSR
+especially improves more clean and smoother tracks.
+
+To maintain the previous improvement of using more interesting waveforms than sine waves, I also generated
+[`square-triangle-envelope.wav`](code/popgen/square-triangle-envelope.wav), which definitely imitates the retro vibe I aimed to
+achieve in my chiptune synthesizer project. The "binary" style of square waves applied on the melody, along with an ADSR envelope to
+smooth out the sound reduces clicking noises as intended, but introduces a feeling I can only describe as "playing from a limited
+sound system".
+
+Based off my learnings from applying an ADSR envelope in this `popgen` objective, I'm planning to implement a similar system into my
+chiptune synthesizer for that additional layer of musical depth and alleviate the notion of each note sounding "flat" due to staying
+at a constant amplitude.

@@ -67,7 +67,7 @@ ap.add_argument('--samplerate', type=int, default=48_000)
 ap.add_argument('--root', type=parse_note, default="C[5]")
 ap.add_argument('--bass-octave', type=int, default=2)
 ap.add_argument('--balance', type=parse_linear_knob, default="5")
-ap.add_argument('--gain', type=parse_db, default="-25") # Made default gain quieter for more (personally) bearable volume
+ap.add_argument('--gain', type=parse_db, default="-20") # Made default gain quieter for more (personally) bearable volume
 ap.add_argument('--output')
 ap.add_argument("--test", action="store_true", help=argparse.SUPPRESS)
 args = ap.parse_args()
@@ -127,12 +127,36 @@ def pick_notes(chord_root, n=4):
     position = p
     return notes
 
+def apply_envelope(original_wave, tAttack, tDecay, tRelease, peak_level, sustain_level):
+    """
+    New Addition:
+    - Get rid of note clicking by adding an envelope. Uses an ADSR envelope to apply over the waveform.
+      Lengths of attack, decay, and release are fixed based on the function call. The amplitude to attack 
+      up to (peak_level) and sustain at after the decay are also fixed according to the parameters.
+    """
+    wave = np.copy(original_wave)
+    # Samples lengths for each ADSR parameter
+    attack_samples = int(tAttack * samplerate)
+    decay_samples = int(tDecay * samplerate)
+    release_samples = int(tRelease * samplerate)
+    sustain_samples = len(wave) - (attack_samples + decay_samples + release_samples)
+
+    envelope = np.concatenate([
+        np.linspace(0, peak_level, attack_samples), # Attack
+        np.linspace(peak_level, sustain_level, decay_samples), # Decay
+        np.full(sustain_samples, sustain_level), # Sustain
+        np.linspace(sustain_level, 0, release_samples) # Release
+    ])
+
+    return wave * envelope[:len(wave)]
+
 # Given a MIDI key number and an optional number of beats of
 # note duration, return a sine wave for that note.
-def make_note(key, n=1, waveform='sine'):
+def make_note(key, n=1, waveform='sine', tAttack=0.01, tDecay=0.1, tRelease=0.2, peak_level=1.0, sustain_level=0.7):
     """
     Extensions:
     - Used more interesting waveforms than purely sine waves
+    - Applied fixed ADSR envelope to generated waves to reduce clicking
     """
     f = 440 * 2 ** ((key - 69) / 12)
     b = beat_samples * n
@@ -142,13 +166,16 @@ def make_note(key, n=1, waveform='sine'):
     if waveform == 'triangle':
         # Triangle Wave Formula: https://en.wikipedia.org/wiki/Triangle_wave
         # x(t) = 2 | 2(t/p - floor(t/p + 1/2) | - 1
-        return 2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
+        wave = 2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
     
     elif waveform == 'square':
-        return np.sign(np.sin(t))
+        wave = np.sign(np.sin(t))
     
-    # Default to sine wave
-    return np.sin(t)
+    else: # Default to sine wave
+        wave = np.sin(t)
+    
+    # Apply ADSR envelope
+    return apply_envelope(wave, tAttack, tDecay, tRelease, peak_level, sustain_level)
 
 # Play the given sound waveform using `sounddevice`.
 def play(sound):
@@ -195,10 +222,15 @@ if args.test:
 sound = np.array([], dtype=np.float64)
 for c in chord_loop:
     notes = pick_notes(c - 1)
-    melody = np.concatenate(list(make_note(i + melody_root, waveform='square') for i in notes))
+    melody = np.concatenate(list(make_note(i + melody_root, 
+                                           waveform='square', 
+                                           tAttack=0.15, tDecay=0.02, tRelease=0.03, 
+                                           peak_level=1.0, sustain_level=0.9) 
+                                           for i in notes))
 
     bass_note = note_to_key_offset(c - 1)
-    bass = make_note(bass_note + bass_root, n=4, waveform='triangle')
+    bass = make_note(bass_note + bass_root, n=4, waveform='triangle', 
+                     tAttack=0.05, tDecay=0.03, tRelease=0.1, peak_level=0.9, sustain_level=0.7)
 
     melody_gain = args.balance
     bass_gain = 1 - melody_gain
