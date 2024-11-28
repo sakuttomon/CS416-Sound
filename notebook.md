@@ -383,8 +383,8 @@ especially improves more clean and smoother tracks.
 
 To maintain the previous improvement of using more interesting waveforms than sine waves, I also generated
 [`square-triangle-envelope.wav`](code/popgen/square-triangle-envelope.wav), which definitely imitates the retro vibe I aimed to
-achieve in my chiptune synthesizer project. The "binary" style of square waves applied on the melody, along with an ADSR envelope to
-smooth out the sound reduces clicking noises as intended, but introduces a feeling I can only describe as "playing from a limited
+achieve in my chiptune synthesizer project. The "binary" style of square waves applied on the melody along with an ADSR envelope to
+smooth out the sound reduces clicking noises as intended, while introducing a feeling I can only describe as "playing from a limited
 sound system".
 
 Based off my learnings from applying an ADSR envelope in this `popgen` objective, I'm planning to implement a similar system into my
