@@ -11,7 +11,7 @@ A sample is available in [`demo.wav`](demo.wav).
 
 The portfolio objective instructions suggested various improvements to this `popgen` code that we were tasked to implement a couple of.
 The following lists out the significant changes I made along with brief descriptions. Any additional thoughts or reflections of my code
-implementations are documented in Week 9 within [**`notebook.md`**](../../notebook.md).
+implementations are documented in Week 9 within [**`notebook.md`**](../../notebook.md#week-9).
 
 ### Use a more interesting waveform than sine waves
 

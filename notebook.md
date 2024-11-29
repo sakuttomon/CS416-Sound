@@ -415,6 +415,7 @@ the beat samples. As a result, `rhythm_pattern` allows for a half, one, or two n
 
 Using this fixed array subjects every chord to the same pattern. I wanted to try "randomizing" the rhythm pattern for each chord.
 However, it's important to consider that manipulating melody note durations still needs to match with the untouched bass duration.
+
 So, the `rhythm_pattern` must sum up to the expected 4 beats per chord (e.g. with note naming, `0.25 + 0.125 + 0.125 + 0.5 = 1`).
 Staying within the 4 beats per measure regulation ensures that the melody aligns with the beat. If the measures did not match, the
 next chord would desync due to the previous melody being shorter or longer than 4 beats.
