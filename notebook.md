@@ -18,7 +18,7 @@ input MIDI, but with a retro-esque touch.
 | [Week 6](#week-6) | [Note to Frequency](#11924---note-to-frequency-program)                 |
 | [Week 7](#week-7) | [Envelope ADSR](#111324---envelope-adsr-program)                        |
 | [Week 8](#week-8) | [Chiptune Synthesizer](#111624---chiptune-synthesizer-midi-parsing)     |
-| [Week 9](#week-9) |                                                                         |
+| [Week 9](#week-9) | [Popgen](#112624---popgen-triangle-waves)                               |
 
 ## Week 1
 
@@ -337,3 +337,91 @@ or project structure.
 
 To reduce the complexity of interleaving lecture notes with project diary entries, I chose to move all of my _Notes_ from class lectures
 to [`lectures.md`](lectures.md). This notebook is now dedicated to documenting experiences from code projects and portolio objectives.
+
+### 11/26/24 - Popgen: Triangle Waves
+
+I started the Popgen portfolio objective, contained in the [**`popgen`**](code/popgen/) code directory. Due to its similarities with
+my _Chiptune Synthesizer_ course project in terms of note manipulation, I wanted to bring over some techniques to see how the code would
+operate in a slightly different environment of generated chords versus processing an input MIDI.
+
+One of the tasks is to "Use a more interesting waveform than sine waves", which aligns with how I used triangle waves for basslines and
+square waves for melodies in my chiptune synthesizer. I incorporated this logic into the `popgen` code, but this time I wanted to try
+calculating the triangle wave purely through `numpy` instead of relying on `scipy.signal`.
+
+The [formula](https://en.wikipedia.org/wiki/Triangle_wave) for a triangle wave of period $p$ and time $t$ spanning the range [-1, 1]
+is as follows:
+
+$$
+x(t) = 2 * | 2 * (t/p - \lfloor t/p + 1/2 \rfloor) | - 1
+$$
+
+$t/p$ divides time by the period, resulting in cycles that `popgen` already calculates and accounts for in the time array `t`.
+The sub-equation $t/p - \lfloor t/p + 1/2 \rfloor$ generates a [sawtooth wave](https://en.wikipedia.org/wiki/Sawtooth_wave)
+in the range [-0.5, 0.5]. Multiplying by 2 then stretches the range to [-1, 1]. The absoulate value operation restricts the range
+to [0, 1], but creates the upward and downward slopes of a traingle, as an [absoulte value function](https://en.wikipedia.org/wiki/Absolute_value#/media/File:Absolute_value.svg) normally does when plotted.
+Finally, the outer multiplication by $2$ changes the range to [0, 2], and the $-1$ brings the range back to [-1, 1] to fit within
+normalized amplitude.
+
+Translating this into code, the $t/p - \lfloor t/p + 1/2 \rfloor$ retrieves the fractional parts of the signal. An equivalent to achieve this is to **modulo** $t/p$ by $1$. `mod 1` will reset time $t$ back to period $p$ once time exceeds the period, ensuring the waveform resets every $p$ seconds, creating the repeating triangle pattern over time.
+
+```python
+2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
+```
+
+### 11/27/24 - Popgen: ADSR Envelope
+
+I originally planned to implement an ADSR envelope into my chiptune synthesizer, so I figured I'd prove out the concept in this popgen
+portfolio objective and satisfy the task to "Get rid of the note clicking by adding a bit of envelope." Most of the code is repurposed
+from my approach in [`envelope-adsr`](code/envelope-adsr/), so I mainly played around with ADSR values until the output sounded enjoyable.
+
+I decided to code two sets of fixed values, one for the melody and another for the bass, to try and produce different feelings of
+music. More details of the ADSR design is described in the dedicated entry located in the code directory
+[`README`](code/popgen/README.md#get-rid-of-the-note-clicking-by-adding-a-bit-of-envelope).
+
+Since I already implemented support for other waveforms, I experimented with how a given set of ADSR parameters affect different
+combinations of waveforms on the melody and bassline. I ended up really liking the soothing feeling of a sine wave melody and triangle
+wave bass, so I pushed up [`sine-triangle-envelope.wav`](code/popgen/sine-triangle-envelope.wav) to demonstrate how this set of ADSR
+especially improves more clean and smoother tracks.
+
+To maintain the previous improvement of using more interesting waveforms than sine waves, I also generated
+[`square-triangle-envelope.wav`](code/popgen/square-triangle-envelope.wav), which definitely imitates the retro vibe I aimed to
+achieve in my chiptune synthesizer project. The "binary" style of square waves applied on the melody along with an ADSR envelope to
+smooth out the sound reduces clicking noises as intended, while introducing a feeling I can only describe as "playing from a limited
+sound system".
+
+Based off my learnings from applying an ADSR envelope in this `popgen` objective, I'm planning to implement a similar system into my
+chiptune synthesizer for that additional layer of musical depth and alleviate the notion of each note sounding "flat" due to staying
+at a constant amplitude.
+
+### 11/28/24 - Popgen: Rhythm Pattern
+
+Another task I wanted to implement is to "Allow rhythm patterns for the melody other than one note per beat". In the `popgen`
+program's original state, it constructs melodies with one note per beat. In the axis progression style, each chord lasts one measure
+(4 beats) in a 4/4 time signature. This notion is further proved out by the `n=4` default parameter in the `pick_notes()` function.
+So, one note per beat essentially looks like `[1, 1, 1, 1]`, resulting in rhythmically identical tracks where each note is of the same
+length.
+
+Introducing a rhythm pattern means diversifying that array of note durations, creating a dynamic arrangement of sounds by playing
+certain notes within a measure for a shorter or longer time period. The corresponding section written in the code directory
+[`README`](code/popgen/README.md#allow-rhythm-patterns-for-the-melody-other-than-one-note-per-beat)
+elaborates further on what functionality was changed to achieve this rhythm arrangement.
+
+Essentially, I created a fixed note duration array `rhythm_pattern = [1, 0.5, 0.5, 2]`. This array defines a pattern of a quarter
+note, eighth note, eigth note again, then ending with a half note. This rhythm pattern aligns with the four notes of a given chord.
+When making a note, the duration of how long to play that note for now depends on the corresponding value from `rhythm_pattern`.
+
+For example, the second note in the measure is assigned a duration of `0.5`, eventually resulting in the note encompassing half of
+the beat samples. As a result, `rhythm_pattern` allows for a half, one, or two notes per beat.
+
+Using this fixed array subjects every chord to the same pattern. I wanted to try "randomizing" the rhythm pattern for each chord.
+However, it's important to consider that manipulating melody note durations still needs to match with the untouched bass duration.
+
+So, the `rhythm_pattern` must sum up to the expected 4 beats per chord (e.g. with note naming, `0.25 + 0.125 + 0.125 + 0.5 = 1`).
+Staying within the 4 beats per measure regulation ensures that the melody aligns with the beat. If the measures did not match, the
+next chord would desync due to the previous melody being shorter or longer than 4 beats.
+
+To maintain this accuracy, I "randomized" rhythm patterns simply by shuffling the fixed array for every chord. So every measure still
+has a quarter note, half note, and 2 eigth notes, but their order is randomized, resulting in dynamic rhythms. A command line flag
+enables or disables the shuffling of the `rhythm_pattern` array. The output WAVs are
+stored as [`square-triangle-fixed-rhythm.wav`](square-triangle-fixed-rhythm.wav) and
+[`square-triangle-shuffle-rhythm.wav`](square-triangle-shuffle-rhythm.wav).

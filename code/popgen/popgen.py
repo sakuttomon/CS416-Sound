@@ -1,8 +1,11 @@
 # "Pop Music Generator"
-# Bart Massey 2024
+# Bart Massey 2024, extended by Irvin Lu
 #
-# This script puts out four bars in the "Axis Progression" chord loop,
-# with a melody and bass line.
+# This script puts out four bars in the "Axis Progression" chord loop, with a melody and bass line.
+# The following extensions were added:
+#   - Use a more interesting waveform than sine waves.
+#   - Get rid of the note clicking by adding a bit of envelope.
+#   - Allow rhythm patterns for the melody other than one note per beat.
 
 import argparse, random, re, wave
 import numpy as np
@@ -66,8 +69,9 @@ ap.add_argument('--samplerate', type=int, default=48_000)
 ap.add_argument('--root', type=parse_note, default="C[5]")
 ap.add_argument('--bass-octave', type=int, default=2)
 ap.add_argument('--balance', type=parse_linear_knob, default="5")
-ap.add_argument('--gain', type=parse_db, default="-3")
+ap.add_argument('--gain', type=parse_db, default="-20") # Made default gain quieter for more (personally) bearable volume
 ap.add_argument('--output')
+ap.add_argument('--shuffle-rhythm', action="store_true")
 ap.add_argument("--test", action="store_true", help=argparse.SUPPRESS)
 args = ap.parse_args()
 
@@ -108,15 +112,23 @@ bass_root = melody_root - 12 * args.bass_octave
 chord_loop = [8, 5, 6, 4]
 
 position = 0
-def pick_notes(chord_root, n=4):
+def pick_notes_rhythm(chord_root, rhythm_pattern):
+    """
+    Extensions: 
+    - Allow rhythm patterns for the melody other than one note per beat, determined by a sequence of note durations 
+    defined in `rhythm_pattern`. 
+    - Return of `notes` now is a list of tuples containing (chord_note, duration). Duration is used in `make_note()` 
+    to enforce the rhythmic pattern of each note within a measure.
+    - Removed `n=4` parameter due to supporting rhythmic variety.
+    """
     global position
     p = position
 
     notes = []
-    for _ in range(n):
+    for duration in rhythm_pattern:
         chord_note_offset = chord_to_note_offset(p)
         chord_note = note_to_key_offset(chord_root + chord_note_offset)
-        notes.append(chord_note)
+        notes.append((chord_note, duration))
 
         if random.random() > 0.5:
             p = p + 1
@@ -124,16 +136,57 @@ def pick_notes(chord_root, n=4):
             p = p - 1
 
     position = p
-    return notes
+    return notes # Tuples of (note, duration), e.g. (60, 0.5)
+
+def apply_envelope(original_wave, tAttack, tDecay, tRelease, peak_level, sustain_level):
+    """
+    New Addition:
+    - Get rid of note clicking by adding an envelope. Uses an ADSR envelope to apply over the waveform.
+      Lengths of attack, decay, and release are fixed based on the function call. The amplitude to attack 
+      up to (peak_level) and sustain at after the decay are also fixed according to the parameters.
+    """
+    wave = np.copy(original_wave)
+    # Samples lengths for each ADSR parameter
+    attack_samples = int(tAttack * samplerate)
+    decay_samples = int(tDecay * samplerate)
+    release_samples = int(tRelease * samplerate)
+    sustain_samples = len(wave) - (attack_samples + decay_samples + release_samples)
+
+    envelope = np.concatenate([
+        np.linspace(0, peak_level, attack_samples), # Attack
+        np.linspace(peak_level, sustain_level, decay_samples), # Decay
+        np.full(sustain_samples, sustain_level), # Sustain
+        np.linspace(sustain_level, 0, release_samples) # Release
+    ])
+
+    return wave * envelope[:len(wave)]
 
 # Given a MIDI key number and an optional number of beats of
 # note duration, return a sine wave for that note.
-def make_note(key, n=1):
+def make_note(key, n=1, waveform='sine', tAttack=0.01, tDecay=0.1, tRelease=0.2, peak_level=1.0, sustain_level=0.7):
+    """
+    Extensions:
+    - Used more interesting waveforms than purely sine waves
+    - Applied fixed ADSR envelope to generated waves to reduce clicking
+    """
     f = 440 * 2 ** ((key - 69) / 12)
-    b = beat_samples * n
+    b = round(beat_samples * n)
     cycles = 2 * np.pi * f * b / samplerate
     t = np.linspace(0, cycles, b)
-    return np.sin(t)
+
+    if waveform == 'triangle':
+        # Triangle Wave Formula: https://en.wikipedia.org/wiki/Triangle_wave
+        # x(t) = 2 | 2(t/p - floor(t/p + 1/2) | - 1
+        wave = 2 * np.abs(2 * ((t / (2 * np.pi)) % 1) - 1) - 1
+    
+    elif waveform == 'square':
+        wave = np.sign(np.sin(t))
+    
+    else: # Default to sine wave
+        wave = np.sin(t)
+    
+    # Apply ADSR envelope
+    return apply_envelope(wave, tAttack, tDecay, tRelease, peak_level, sustain_level)
 
 # Play the given sound waveform using `sounddevice`.
 def play(sound):
@@ -176,14 +229,26 @@ if args.test:
 
     exit(0)
     
+# Quarter, Eighth, Eighth, Half
+rhythm_pattern = [1, 0.5, 0.5, 2]
 # Stitch together a waveform for the desired music.
 sound = np.array([], dtype=np.float64)
 for c in chord_loop:
-    notes = pick_notes(c - 1)
-    melody = np.concatenate(list(make_note(i + melody_root) for i in notes))
+
+    if args.shuffle_rhythm:
+        # Randomize order of note durations for different rhythms per chord
+        np.random.shuffle(rhythm_pattern)
+
+    notes = pick_notes_rhythm(c - 1, rhythm_pattern)
+    melody = np.concatenate(list(make_note(note + melody_root, 
+                                           n=duration, waveform='square', 
+                                           tAttack=0.15, tDecay=0.02, tRelease=0.03, 
+                                           peak_level=1.0, sustain_level=0.9) 
+                                           for note, duration in notes))
 
     bass_note = note_to_key_offset(c - 1)
-    bass = make_note(bass_note + bass_root, n=4)
+    bass = make_note(bass_note + bass_root, n=4, waveform='triangle', 
+                     tAttack=0.05, tDecay=0.03, tRelease=0.1, peak_level=0.9, sustain_level=0.7)
 
     melody_gain = args.balance
     bass_gain = 1 - melody_gain
