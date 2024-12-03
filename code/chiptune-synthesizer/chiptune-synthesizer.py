@@ -112,6 +112,43 @@ class MidiToChiptune:
         
         print("--------------------")
     
+    def applyEnvelope(self, original_wave, tAttack, tDecay, tRelease, sustain_level, velocity):
+        """
+        Applies an ADSR envelope to a waveform with velocity dynamics.
+
+        Args:
+            original_wave (np.ndarray): The waveform to apply the envelope to.
+            tAttack (float): Attack time in seconds.
+            tDecay (float): Decay time in seconds.
+            tRelease (float): Release time in seconds.
+            sustain_level (float): Base sustain level (scaled by velocity).
+            velocity (float): MIDI velocity normalized to 0.0–1.0.
+
+        Returns:
+            np.ndarray: A copy of the original waveform with the ADSR envelope applied.
+        """
+        wave = np.copy(original_wave)
+
+        # Convert time parameters to sample counts
+        attack_samples = int(tAttack * SAMPLE_RATE)
+        decay_samples = int(tDecay * SAMPLE_RATE)
+        release_samples = int(tRelease * SAMPLE_RATE)
+        sustain_samples = max(0, len(wave) - (attack_samples + decay_samples + release_samples))
+
+        # Scale sustain level and peak amplitude by velocity
+        peak_amplitude = velocity
+        scaled_sustain = sustain_level * velocity
+
+        envelope = np.concatenate([
+            np.linspace(0, peak_amplitude, attack_samples), # Attack
+            np.linspace(peak_amplitude, scaled_sustain, decay_samples), # Decay
+            np.full(sustain_samples, scaled_sustain), # Sustain
+            np.linspace(scaled_sustain, 0, release_samples) # Release
+        ])
+
+        # Apply envelope to wave, ensure envelope matches wave length in case of int rounding
+        return wave * envelope[:len(wave)]
+    
     def generateWave(self, frequency, duration, waveform='square', volume=0.5):
         """
         Generates a waveform of the specified type for a given frequency. This generation imitates the
@@ -207,6 +244,8 @@ class MidiToChiptune:
             
             # Obtain either a waveform (bass drums) or noise wave (other drums).
             wave = self.generateDrumSound(note.pitch, duration, velocity)
+            # Percussion sounds naturally short, should not sustain a sound
+            wave = self.applyEnvelope(wave, tAttack=0.01, tDecay=0.05, tRelease=0.05, sustain_level=0.0, velocity=velocity)
 
             # Add part to percussion track during its timeslot
             start_sample = int(note.start * SAMPLE_RATE)
@@ -261,8 +300,10 @@ class MidiToChiptune:
             end_sample = start_sample + len(wave)
             
             if waveform == "triangle": # Bass
+                wave = self.applyEnvelope(wave, tAttack=0.01, tDecay=0.1, tRelease=0.1, sustain_level=0.65, velocity=velocity)
                 bass_parts[start_sample:end_sample] += wave[:len(bass_parts) - start_sample]
             else: # Melody (square or sawtooth)
+                wave = self.applyEnvelope(wave, tAttack=0.05, tDecay=0.15, tRelease=0.2, sustain_level=0.75, velocity=velocity)
                 melody_parts[start_sample:end_sample] += wave[:len(melody_parts) - start_sample]
         
         # Contains chiptune audio data for melody and bassline instruments
