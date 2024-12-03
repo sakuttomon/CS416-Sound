@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import os
 import pretty_midi # 0.2.10 release incompatible with Python 3.12: https://github.com/craffel/pretty-midi/pull/252
@@ -27,21 +28,24 @@ DRUM_KEY_MAP = {
 }
 
 class MidiToChiptune:
-    def __init__(self, file):
+    def __init__(self, input_midi, disable_adsr):
         """
         Extracts the MIDI data from a given `.mid` file to prepare for applying chiptune waveforms on each note.
 
         Args:
-            file (str): The MIDI file to process, parsed using the `pretty_midi` library.
+            input_midi (str): The MIDI file path to process, parsed using the `pretty_midi` library.
+            disable_adsr (bool): Whether to apply an ADSR envelope on the melody, bassline, and percussion waves.
         """
-        self.file_path, file_extension = os.path.splitext(file)
+        # Arguments from Command Line
+        self.file_path, file_extension = os.path.splitext(input_midi)
         self.track_name = os.path.basename(self.file_path)
+        self.adsr = not disable_adsr
         
         if not file_extension == '.mid':
             raise OSError('File must be a MIDI file (.mid)')
         
         # Get all the information pretty_midi parses
-        self.data = pretty_midi.PrettyMIDI(file)
+        self.data = pretty_midi.PrettyMIDI(input_midi)
         self.instruments: List[pretty_midi.Instrument] = self.data.instruments # Contains notes under each
         self.time_signatures = self.data.time_signature_changes
         self.key_signatures = self.data.key_signature_changes
@@ -111,6 +115,43 @@ class MidiToChiptune:
             #     print(f"{self.midiNoteToFrequency(note.pitch)}")
         
         print("--------------------")
+    
+    def applyEnvelope(self, original_wave, tAttack, tDecay, tRelease, sustain_level, velocity):
+        """
+        Applies an ADSR envelope to a waveform with velocity dynamics.
+
+        Args:
+            original_wave (np.ndarray): The waveform to apply the envelope to.
+            tAttack (float): Attack time in seconds.
+            tDecay (float): Decay time in seconds.
+            tRelease (float): Release time in seconds.
+            sustain_level (float): Base sustain level (scaled by velocity).
+            velocity (float): MIDI velocity normalized to 0.0–1.0.
+
+        Returns:
+            np.ndarray: A copy of the original waveform with the ADSR envelope applied.
+        """
+        wave = np.copy(original_wave)
+
+        # Convert time parameters to sample counts
+        attack_samples = int(tAttack * SAMPLE_RATE)
+        decay_samples = int(tDecay * SAMPLE_RATE)
+        release_samples = int(tRelease * SAMPLE_RATE)
+        sustain_samples = max(0, len(wave) - (attack_samples + decay_samples + release_samples))
+
+        # Scale sustain level and peak amplitude by velocity
+        peak_amplitude = velocity
+        scaled_sustain = sustain_level * velocity
+
+        envelope = np.concatenate([
+            np.linspace(0, peak_amplitude, attack_samples), # Attack
+            np.linspace(peak_amplitude, scaled_sustain, decay_samples), # Decay
+            np.full(sustain_samples, scaled_sustain), # Sustain
+            np.linspace(scaled_sustain, 0, release_samples) # Release
+        ])
+
+        # Apply envelope to wave, ensure envelope matches wave length in case of int rounding
+        return wave * envelope[:len(wave)]
     
     def generateWave(self, frequency, duration, waveform='square', volume=0.5):
         """
@@ -207,6 +248,9 @@ class MidiToChiptune:
             
             # Obtain either a waveform (bass drums) or noise wave (other drums).
             wave = self.generateDrumSound(note.pitch, duration, velocity)
+            if self.adsr:
+                # Percussion sounds naturally short, should not sustain a sound
+                wave = self.applyEnvelope(wave, tAttack=0.01, tDecay=0.05, tRelease=0.05, sustain_level=0.0, velocity=velocity)
 
             # Add part to percussion track during its timeslot
             start_sample = int(note.start * SAMPLE_RATE)
@@ -254,15 +298,19 @@ class MidiToChiptune:
 
             # Construct waveform data
             wave = self.generateWave(frequency, duration, waveform, volume=velocity)
-            # TODO: Apply ADSR envelope to wave
 
             # Place waveforms in the appropriate track timeslot
             start_sample = int(note.start * SAMPLE_RATE)
             end_sample = start_sample + len(wave)
             
             if waveform == "triangle": # Bass
+                if self.adsr:
+                    wave = self.applyEnvelope(wave, tAttack=0.01, tDecay=0.1, tRelease=0.1, sustain_level=0.65, velocity=velocity)
                 bass_parts[start_sample:end_sample] += wave[:len(bass_parts) - start_sample]
+
             else: # Melody (square or sawtooth)
+                if self.adsr:
+                    wave = self.applyEnvelope(wave, tAttack=0.05, tDecay=0.15, tRelease=0.2, sustain_level=0.75, velocity=velocity)
                 melody_parts[start_sample:end_sample] += wave[:len(melody_parts) - start_sample]
         
         # Contains chiptune audio data for melody and bassline instruments
@@ -295,12 +343,13 @@ class MidiToChiptune:
         self.chiptune_wave = np.tanh(self.chiptune_wave) # Softly limit range to prevent peaks
         self.chiptune_wave *= LOUDNESS      
 
-    def saveWAV(self, output_path="output-wavs"):
+    def saveWAV(self, output_dir="output-wavs"):
         """
-        Saves the `chiptune_wave` audio data array to a WAV file.
+        Saves the `chiptune_wave` audio data array to a WAV file. The saved filename matches the original 
+        input MIDI's track name.
 
         Args:
-            output_path (str): The file path to save the WAV file to. Defaults to `output-wavs/`
+            output_dir (str): The directory name to save the WAV file to. Defaults to `output-wavs`
         
         Raises:
             Exception: If `chiptune_wave` is not populated yet, inform user to run converter first.
@@ -308,7 +357,7 @@ class MidiToChiptune:
         # Convert to expected format WAV files expect
         if self.chiptune_wave.any(): 
             wav_chiptune_wave = (self.chiptune_wave * 32767).astype(np.int16)
-            write(f"{output_path}/{self.track_name}.wav", SAMPLE_RATE, wav_chiptune_wave)
+            write(f"{output_dir}/{self.track_name}.wav", SAMPLE_RATE, wav_chiptune_wave)
         else:
             raise Exception("No chiptune audio to save. Please call midiToChiptune() before saving audio.")
     
@@ -329,9 +378,24 @@ class MidiToChiptune:
             raise Exception("No chiptune audio to play. Please call midiToChiptune() before playing audio.")
 
 if __name__ == "__main__":
-    synth = MidiToChiptune("midi-assets/Raise (One Piece ED 19) Ringtone.mid")
-    synth.printMidiInfo()
+    ap = argparse.ArgumentParser(description="Chiptune Synthesizer")
+    
+    # Required Argument, path to MIDI file to synthesize chiptune waves with:
+    ap.add_argument("input_midi", help="File path to the input MIDI file.")
 
-    print()
-    synth.saveWAV()
-    synth.playChiptune()
+    # Optional Arguments
+    ap.add_argument('--output', default="output-wavs", help="Directory to generate the chiptune WAV into. Defaults to `output-wavs`.")
+    ap.add_argument('--no-play', action="store_true", help="Do not play the chiptune wave to audio output.")
+    ap.add_argument('--disable-adsr', action="store_true", help="Disable applying an ADSR envelope.")
+    args = ap.parse_args()
+
+    # Construct the Chiptune Wave
+    synth = MidiToChiptune(args.input_midi, args.disable_adsr)
+
+    # Show the Results
+    synth.printMidiInfo()
+    synth.saveWAV(args.output)
+    
+    if not args.no_play:
+        print()
+        synth.playChiptune()

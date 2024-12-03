@@ -90,7 +90,7 @@ range indicate a courrpted MIDI file. As a result, use of the synthesizer instru
 to MIDI file, and thus songs using this instrument cannot be used in my chiptune synthesizer project.
 
 The MIDI file below is the same note sequence but excluding the **Synthesizer** instrument and was successfully processed in the
-chiptune program. More discoveries about my discoveries and choice to move forward without worry is documented in [`notebook.md`](../../../../notebook.md).
+chiptune program. More discoveries about my discoveries and choice to move forward without worry is documented in [`notebook.md`](../../../../notebook.md#111924---online-sequencer-midi-export-shenanigans).
 
 [`electronics-without-synthesizer.mid`](electronics-without-synthesizer.mid)
 

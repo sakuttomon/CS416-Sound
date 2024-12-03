@@ -8,17 +8,18 @@ Ideas for my overall course project were conjectured in this [entry](#11424---pr
 original note data. Combining the waveforms together results in a chiptune wave, containing synthesized notes that sounds like the
 input MIDI, but with a retro-esque touch.
 
-| Table of Contents | Projects                                                                |
-| ----------------- | ----------------------------------------------------------------------- |
-| [Week 1](#week-1) |                                                                         |
-| [Week 2](#week-2) | [Clipped Sine Waves](#101124---clipping-portfolio-objective)            |
-| [Week 3](#week-3) |                                                                         |
-| [Week 4](#week-4) | [FFT & Spectrogram](#102524---playing-around-with-fft-and-spectrograms) |
-| [Week 5](#week-5) | [Adaptive Tone Control](#11324---adaptive-tone-control)                 |
-| [Week 6](#week-6) | [Note to Frequency](#11924---note-to-frequency-program)                 |
-| [Week 7](#week-7) | [Envelope ADSR](#111324---envelope-adsr-program)                        |
-| [Week 8](#week-8) | [Chiptune Synthesizer](#111624---chiptune-synthesizer-midi-parsing)     |
-| [Week 9](#week-9) | [Popgen](#112624---popgen-triangle-waves)                               |
+| Table of Contents   | Projects                                                                    |
+| ------------------- | --------------------------------------------------------------------------- |
+| [Week 1](#week-1)   |                                                                             |
+| [Week 2](#week-2)   | [Clipped Sine Waves](#101124---clipping-portfolio-objective)                |
+| [Week 3](#week-3)   |                                                                             |
+| [Week 4](#week-4)   | [FFT & Spectrogram](#102524---playing-around-with-fft-and-spectrograms)     |
+| [Week 5](#week-5)   | [Adaptive Tone Control](#11324---adaptive-tone-control)                     |
+| [Week 6](#week-6)   | [Note to Frequency](#11924---note-to-frequency-program)                     |
+| [Week 7](#week-7)   | [Envelope ADSR](#111324---envelope-adsr-program)                            |
+| [Week 8](#week-8)   | [Chiptune Synthesizer](#111624---chiptune-synthesizer-midi-parsing)         |
+| [Week 9](#week-9)   | [Popgen](#112624---popgen-triangle-waves)                                   |
+| [Week 10](#week-10) | [Chiptune Synthesizer _Cont._](#12324---chiptune-synthesizer-adsr-envelope) |
 
 ## Week 1
 
@@ -425,3 +426,54 @@ has a quarter note, half note, and 2 eigth notes, but their order is randomized,
 enables or disables the shuffling of the `rhythm_pattern` array. The output WAVs are
 stored as [`square-triangle-fixed-rhythm.wav`](square-triangle-fixed-rhythm.wav) and
 [`square-triangle-shuffle-rhythm.wav`](square-triangle-shuffle-rhythm.wav).
+
+## Week 10
+
+### 12/3/24 - Chiptune Synthesizer: ADSR Envelope
+
+This [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/5) integrates fixed ADSR envelopes into the Chiptune Synthesizer to
+improve musical depth and overall sound quality. The implementation is very similar to how it was used in
+[`note-to-frequency`](code/note-to-frequency/) and the [`popgen`](code/popgen/) portfolio objective.
+
+Specifically, a different ADSR envelope is applied for each musical part: melody, bassline, and percussion. The notable differences
+between each envelope's parameters are as follows:
+
+- **Melody** waves are given higher ADSR values to make their presence more defining, typical of a melody.
+- **Bassline** waves have slightly smaller values to emphasize their purpose as a backline complement to the melody. They have a more
+  "punchy" attack and release, along with a smaller sustain as to not overpower the melody sounds.
+- **Percussion** waves have no sustain since they are meant to serve as instant drum sounds. The other parameters are also short to
+  imitate the effect of striking a drum.
+
+Moreover, since an input MIDI gives us access to the **velocity** of a note, we can dynamically adjust an envelope to be quieter
+or louder for the given wave. Specifically, the velocity is multiplied with the fixed sustain level of the envelope, resulting
+in a scaled sustain that makes the enveloped wave sound more expressive and volume accurate to the original MIDI.
+
+With an ADSR envelope integrated, I was quite happy with the results! The chiptune synthesizer's purpose of converting MIDI files to
+chiptune style audio tracks is functionally complete. In this same [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/5), I added
+the plethora of MIDI inputs and WAV outputs from my testing, and updated the [`README`](code/chiptune-synthesizer/README.md)
+to look more like a proper guide.
+
+### 12/3/24 - Chiptune Synthesizer: Command Line Arguments, Effect of Disabling ADSR
+
+To make the chiptune synthesizer more usable to the typical user, I incorporated command line arguments that requires an input MIDI
+file path to perform the synthesis on, and an optional output argument to specify the directory name for saving the resulting chiptune
+WAV into. Now, there's no longer a need to edit the code directly to change the MIDI file path that the program references. This implementation is contained in the same [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/5) from the previous entry.
+
+Additionally, I added two more optional boolean flags, `--no-play` and `--disable-adsr` to turn off playing the chiptune wave
+to audio output and applying the ADSR envelope respectively. The `no-play` option is simply an efficiency saver that I used to
+generate multiple WAVs in succession without interruption.
+
+**Disabling the ADSR envelope is not recommended**, but I implemented it regardless to observe the differences of a non-enveloped
+chiptune wave and reveal the benefits of applying an envelope.
+
+For more complex MIDI songs that use a variety of instruments, the effects of not using an ADSR envelope are more apparent. Without
+some form of dynamic sound control, notes always sound at peak amplitude. Melody piano notes sound the least offensive, but they feel
+less natural, exhibiting the sense of a pure waveform rather than a piano key being pressed.
+
+Percussion especially suffers without an envelope, producing glitchy effects due to sustaining a noise wave at peak volume throughout
+the entire note duration. An envelope that removes sustain along with short ADR reduces these peaks and prevents sound persistence,
+influencing the percussion notes to sound more like drum snares.
+
+Although the chiptune synthesizer's purpose is to create a retro-style song with these basic waveforms, adding the dynamics of rising
+and releasing sounds improves the intention to make the song sound like it is passing through a retro filter, in constrast to the
+"hardcoded waves" vibe that a non-enveloped output produces.
