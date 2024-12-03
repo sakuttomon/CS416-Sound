@@ -40,10 +40,10 @@ This chiptune synthesizer applies different waveforms based on the instrument. T
 combinations to test the capabilities of the chiptune synthesizer. The following list of emojis reveals the mapping between
 supported instrument types and the corresponding basic waveforms that generates. These emojis are prepended to each song in the credits list to indicate what the chiptune synthesizer operated with for the given song.
 
-- :guitar:: Bassline Instruments --> Triangle Waves
-- :trumpet:: Orchestral Instruments --> Sawtooth Waves
-- :drum:: Drum Instruments --> Sine Waves or White Noise
-- :musical_keyboard:: Keyboard + All Unsupported Instruments --> Square Waves
+- 🎸: Bassline Instruments --> Triangle Waves
+- 🎺: Orchestral Instruments --> Sawtooth Waves
+- 🥁: Drum Instruments --> Sine Waves or White Noise
+- 🎹: Keyboard + All Unsupported Instruments --> Square Waves
 
 _Please see the [**Credits**](#credits) for songs I did not make myself._
 
