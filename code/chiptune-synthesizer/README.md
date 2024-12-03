@@ -15,21 +15,33 @@ Tested on Mac OS, Python 3.9
 1. Create a virtual environment if desired: `python3 -m venv env`
 2. Activate the env: `source env/bin/activate`
 3. Install required dependencies: `pip install -r requirements.txt`
-4. Run the program with an input MIDI file (`.mid`):
+4. Run the program with an input MIDI file path (`.mid`). See [_Arguments_](#arguments) for additional command line flags.
 
 ```python
 python3 chiptune-synthesizer.py "{file_path}"
 
 # For Example:
 # python3 chiptune-synthesizer.py "midi-assets/Mario Kart 8 - Wild Woods.mid"
-
-# Other Flags
---no-play               # Do not play the chiptune audio to computer output.
---output {file_path}    # The output directory to generate the chiptune WAV into. Defaults to `output-wavs`
---disable-adsr          # Disables use of applying an ADSR envelope to generated chiptune waves.
 ```
 
 5. The program should generate a chiptunified WAV file in the specified output path and/or play the track to computer audio output.
+
+### Arguments
+
+Since this chiptune synthesizer relies on an input MIDI, the file path to a MIDI file is a required positional argument when running `chiptune-synthesizer.py`.
+
+| Flag              | Type   | Default       | Description                                     |
+| ----------------- | ------ | ------------- | ----------------------------------------------- |
+| input_midi        | string |               | **Required**: File path to the input MIDI file. |
+| --output {OUTPUT} | string | "output-wavs" | Directory to generate the chiptune WAV into.    |
+| --no-play         | bool   | `false`       | Do not play the chiptune wave to audio output.  |
+| --disable-adsr    | bool   | `false`       | Disable applying an ADSR envelope.              |
+| -h, --help        |        |               | Show help message and exit.                     |
+
+```python
+# For Example, to generate a chiptune wave without ADSR and prevent playing audio to speakers:
+python3 chiptune-synthesizer.py "midi-assets/Mario Kart 8 - Wild Woods.mid" --disable-adsr --no-play --output "output-wavs"
+```
 
 ## MIDI Assets
 
