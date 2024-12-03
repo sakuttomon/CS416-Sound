@@ -18,11 +18,14 @@ Tested on Mac OS, Python 3.9
 4. Run the program with an input MIDI file (`.mid`):
 
 ```python
-python3 chiptune-synthesizer.py --input {file_path}
+python3 chiptune-synthesizer.py "{file_path}"
+
+# For Example:
+# python3 chiptune-synthesizer.py "midi-assets/Mario Kart 8 - Wild Woods.mid"
 
 # Other Flags
---play                  # Play the chiptune audio to computer output.
---output {file_path}    # The output directory to generate the chiptune WAV into. Defaults to `output-wavs/`
+--no-play               # Do not play the chiptune audio to computer output.
+--output {file_path}    # The output directory to generate the chiptune WAV into. Defaults to `output-wavs`
 --disable-adsr          # Disables use of applying an ADSR envelope to generated chiptune waves.
 ```
 
@@ -47,6 +50,14 @@ supported instrument types and the corresponding basic waveforms that generates.
 - 🎹: Keyboard + All Unsupported Instruments --> Square Waves
 
 _Please see the [**Credits**](#credits) for songs I did not make myself._
+
+## Demo WAVs
+
+This program defaults to saving the generated chiptune WAV files to an existing directory [`output-wavs`](output-wavs/).
+This directory contains reference WAVs to demonstrate the chiptune synthesizer's output for various tracks. Each WAV file's name
+matches the corresponding song name in [`midi-assets`](midi-assets/).
+
+All current demo audio files in `output-wavs` were generated with the **ADSR Envelope** enabled.
 
 ## Credits
 
