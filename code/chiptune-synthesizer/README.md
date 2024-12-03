@@ -21,7 +21,8 @@ Tested on Mac OS, Python 3.9
 python3 chiptune-synthesizer.py --input {file_path}
 
 # Other Flags
---output {file_path}    # Specify output directory. Defaults to `output-wavs/`
+--play                  # Play the chiptune audio to computer output.
+--output {file_path}    # The output directory to generate the chiptune WAV into. Defaults to `output-wavs/`
 --disable-adsr          # Disables use of applying an ADSR envelope to generated chiptune waves.
 ```
 
