@@ -12,8 +12,9 @@ A student portfolio containing all the assignments, activities, and projects per
 The overall course project I chose to do is a _Chiptune Synthesizer_, which takes in an input MIDI and "converts" the audio to a chiptune style, synthesizing basic waveforms based on each note's data. The project directory is located at the following link:
 
 - [**_`Chiptune Synthesizer`_**](code/chiptune-synthesizer/)
-- See the conclusion post containing my thoughts and analysis on the finished project's outputs in the notebook's
-  [**final entry**](notebook.md#12724---chiptune-synthesizer-conclusions).
+
+See the conclusion post containing my thoughts and analysis on the finished project's outputs in the notebook's
+[**final entry**](notebook.md#12724---chiptune-synthesizer-conclusions).
 
 ## Portfolio Objectives
 
