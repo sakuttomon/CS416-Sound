@@ -4,9 +4,9 @@ A document containing notes or reflections about the work and progress done thro
 estimated date where such activities occured or finished. Notes taken from lectures are contained in the [`lectures.md`](lectures.md) file.
 
 Ideas for my overall course project were conjectured in this [entry](#11424---project-ideas-thought-process). The project is a
-**Chiptune Synthesizer** that will take a MIDI file as input, and for each instrument, generate basic waveforms referring to the
-original note data. Combining the waveforms together results in a chiptune wave, containing synthesized notes that sounds like the
-input MIDI, but with a retro-esque touch.
+[**Chiptune Synthesizer**](code/chiptune-synthesizer/) that will take a MIDI file as input, and for each instrument, generate basic
+waveforms referring to the original note data. Combining the waveforms together results in a chiptune wave, containing synthesized
+notes that sounds like the input MIDI, but with a retro-esque touch.
 
 | Table of Contents   | Projects                                                                    |
 | ------------------- | --------------------------------------------------------------------------- |
@@ -51,7 +51,7 @@ filters to reduce frequencies smoothly and preserve the slopes of the original w
 
 | Clipping                                        | Low-Pass Filter                                               |
 | ----------------------------------------------- | ------------------------------------------------------------- |
-| Limit amplitude by trauncating wave             | Gradually reduce down high frequencies that are beyond cutoff |
+| Limit amplitude by truncating wave              | Gradually reduce down high frequencies that are beyond cutoff |
 | Distorts shape due to flattening wave at limits | Attempts to preserve shape of the signal's tone               |
 
 ### 10/11/24 - Clipping Portfolio Objective
@@ -73,12 +73,12 @@ while also feeling relevant to my field of study.
 ### 10/25/24 - Playing around with FFT and Spectrograms
 
 Throughout the week, to greater understand how external libraries implement FFT and the process of measuring frequencies,
-I made a program [`fft-spectrogram.py`](code/spectrogram-fun/fft-spectrogram.py) within the [`spectogram-fun`](code/spectrogram-fun/)
+I made a program [`fft-spectrogram.py`](code/spectrogram-fun/fft-spectrogram.py) within the [`spectrogram-fun`](code/spectrogram-fun/)
 directory that plots the spectrogram of a WAV file using Matplotlib's FFT functionalities.
 
 Takeaways about the role of window functions when applying FFT:
 
-- FFT assumes input signal is periodic, but real signals don't purely repeat continiously, so FFT would produce spectral leakage discontinuities due to cutting off the signal.
+- FFT assumes input signal is periodic, but real signals don't purely repeat continuously, so FFT would produce spectral leakage discontinuities due to cutting off the signal.
 - Window functions mitigate this leakage by tapering signal at edges of the window. The window would smoothly reduce the amplitude of the signal to zero at the edges, reducing discontinuities between windows.
 - The [Hann window](https://en.wikipedia.org/wiki/Hann_function) is a normal curve function, which would produce the aspired smoothing effect at the quartile edges.
 - Window effectively acts as a filter that smooths the data before applying the FFT
@@ -151,7 +151,7 @@ I plan to play around with aspects related to the **Chiptune Synthesizer** as th
 ### 11/9/24 - Note to Frequency Program
 
 To start on my chiptune synthesizer project, I wrote a program within the [`note-to-frequency`](code/note-to-frequency/) directory to
-learn how I will take note inputs from the user and convert them to interactable frequencies. More details on how the program works in
+learn how I will take note inputs from the user and convert them to interactive frequencies. More details on how the program works in
 its dedicated [`README`](code/note-to-frequency/README.md). The calculation and frequency validation follows the Wikipedia article
 "[Piano key frequencies](https://en.wikipedia.org/wiki/Piano_key_frequencies)". Some lessons I learned:
 
@@ -325,7 +325,7 @@ Users can listen to the chiptunified track using either an audio player or save 
 
 The output audio sounds pretty satisfying! The audio feels very retro-esque, and I haven't found any obvious cases of clipping. I have
 noticed that when an input MIDI plays a lot of notes during the same timeframe, the chiptune version sounds amplified, likely due to the
-layering of basic waveforms - especially for square waves and their "beeping" characteristic. This is moreso an effect of translating
+layering of basic waveforms - especially for square waves and their "beeping" characteristic. This is more so an effect of translating
 more complex songs to a limited set of "chiptune instruments".
 
 Nonetheless, it undeniably sounds like chiptune music, so the minimum requirements I set for this project are accompished. With the
@@ -408,7 +408,7 @@ certain notes within a measure for a shorter or longer time period. The correspo
 elaborates further on what functionality was changed to achieve this rhythm arrangement.
 
 Essentially, I created a fixed note duration array `rhythm_pattern = [1, 0.5, 0.5, 2]`. This array defines a pattern of a quarter
-note, eighth note, eigth note again, then ending with a half note. This rhythm pattern aligns with the four notes of a given chord.
+note, eighth note, eighth note again, then ending with a half note. This rhythm pattern aligns with the four notes of a given chord.
 When making a note, the duration of how long to play that note for now depends on the corresponding value from `rhythm_pattern`.
 
 For example, the second note in the measure is assigned a duration of `0.5`, eventually resulting in the note encompassing half of
@@ -422,7 +422,7 @@ Staying within the 4 beats per measure regulation ensures that the melody aligns
 next chord would desync due to the previous melody being shorter or longer than 4 beats.
 
 To maintain this accuracy, I "randomized" rhythm patterns simply by shuffling the fixed array for every chord. So every measure still
-has a quarter note, half note, and 2 eigth notes, but their order is randomized, resulting in dynamic rhythms. A command line flag
+has a quarter note, half note, and 2 eighth notes, but their order is randomized, resulting in dynamic rhythms. A command line flag
 enables or disables the shuffling of the `rhythm_pattern` array. The output WAVs are
 stored as [`square-triangle-fixed-rhythm.wav`](square-triangle-fixed-rhythm.wav) and
 [`square-triangle-shuffle-rhythm.wav`](square-triangle-shuffle-rhythm.wav).
@@ -457,7 +457,8 @@ to look more like a proper guide.
 
 To make the chiptune synthesizer more usable to the typical user, I incorporated command line arguments that requires an input MIDI
 file path to perform the synthesis on, and an optional output argument to specify the directory name for saving the resulting chiptune
-WAV into. Now, there's no longer a need to edit the code directly to change the MIDI file path that the program references. This implementation is contained in the same [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/5) from the previous entry.
+WAV into. Now, there's no longer a need to edit the code directly to change the MIDI file path that the program references. This
+implementation is contained in the same [**PR**](https://github.com/sakuttomon/CS416-Sound/pull/5) from the previous entry.
 
 Additionally, I added two more optional boolean flags, `--no-play` and `--disable-adsr` to turn off playing the chiptune wave
 to audio output and applying the ADSR envelope respectively. The `no-play` option is simply an efficiency saver that I used to
@@ -477,3 +478,74 @@ influencing the percussion notes to sound more like drum snares.
 Although the chiptune synthesizer's purpose is to create a retro-style song with these basic waveforms, adding the dynamics of rising
 and releasing sounds improves the intention to make the song sound like it is passing through a retro filter, in constrast to the
 "hardcoded waves" vibe that a non-enveloped output produces.
+
+### 12/7/24 - Chiptune Synthesizer: Conclusions
+
+From the chiptune songs contained in [`output-wavs`](code/chiptune-synthesizer/output-wavs/), I'm satisfied with calling this project
+complete! To close out, here are a couple thoughts I've derived from the chiptune synthesizer's outputs:
+
+#### Overall Observations
+
+I've noticed for different melody notes played at the same time, the overlapping of square waves produces a more chaotic sound.
+This phenomenon is more present in songs like [Overture - Super Mario Galaxy OST](<code/chiptune-synthesizer/output-wavs/Overture - Super Mario Galaxy OST.wav>),
+where multiple piano notes are played in the same timeframe to construct a smooth blending of tones. However, square waves, when
+summed together, produce a harsher and more aggressive effect than what might be intended in the original MIDI composition.
+
+I'm not overly worried about the harshness above, as the objective of the chiptune synthesizer is to imitate retro hardware synthesis,
+where rawness and limitations were defining features. The goal is not to replicate realistic MIDI instruments, but to **synthesize**
+new chiptune sounds that reference the incoming MIDI notes, yet ultimately produce an output reminiscent of playing audio from an
+early game console.
+
+I'm especially happy that every song's overarching melody remains immediately recognizable in chiptune form, which shows to me how
+amazingly in-depth MIDI files truly are, providing both note timings and amplitudes (velocity) that the synthesizer can use to
+"replace" the original sound with different samples - in this case, the basic waveforms. By following the exact durations and
+relative amplitude of each note, the chiptune output feels both faithful to the original composition, yet reimagined in a retro style.
+
+#### Music Part Impressions
+
+Early in the project, I chose to incorporate three musical parts (melody, bassline, percussion) and dedicate square, triangle, and
+sawtooth waves to each respectively. Below are my general impressions on each part's output:
+
+**Melodies** are the most defining parts of the song, which fits the bold, sharp, and focused sounds of a square wave. However, the
+melody wave is where most unsupported instruments end up falling into, meaning the melody also acts as an all-encompassing part.
+
+- For example, piano keys and non-bass guitars (e.g. acoustic) both fall into the melody, resulting in square waves almost always
+  dominating the song. Consequently, "non-melody" parts played by instruments that are not accounted for in the chiptune synthesizer
+  also get assigned as square waves.
+- I'm content with considering this default square wave mapping as a feature of the chiptune synthesis. Since early sound chips had
+  a limited number of samples, trying to translate a modern MIDI to chiptune would naturally result in compensations.
+- Regardless, the beat and tempo should differ enough between instruments, so the notes feel unique despite all being square waves.
+  [Sonic Unleashed - Endless Possibility](code/chiptune-synthesizer/output-wavs/Sonic%20Unleashed%20-%20Endless%20Possibility.wav)
+  is an acoustic guitar focused melody while
+  [Bright Sandstorm - Fire Emblem Engage](code/chiptune-synthesizer/output-wavs/Bright%20Sandstorm%20-%20Fire%20Emblem%20Engage.wav)
+  is piano-based, yet the fast riffs of the former feel distinct compared to the latter's longer, more resonant key presses.
+
+_Orchestra_ instruments get placed into the melody, but their notes are assigned sawtooth waves. Sawtooth is the most harmonically
+complex and rich waveform of those implemented, so I found these notes the most pleasing. See
+[Super Mario Galaxy - To the Gateway](code/chiptune-synthesizer/output-wavs/Super%20Mario%20Galaxy%20-%20To%20the%20Gateway.wav)
+for pure orchestral music translated into sawtooth waves. There are a lot of possible orchestra instruments (_strings_, _ensemble_,
+_brass_, _reed_, and _pipe_), so dedicating sawtooth waves to these notes add an imperative contrast and dynamism to a melody
+heavily concentrated with square waves.
+
+**Bassline** notes use the more subtle and rounded triangle waves, which is a fitting application in concept, but the smooth,
+low-frequency output is a little hard to hear when the bold square wave melody is playing.
+
+- [Oops, all Bass Guitar!](code/chiptune-synthesizer/output-wavs/Oops,%20all%20Bass%20Guitar!.wav) shows that the bassline wave is
+  functional, but the notes by themself are pretty quiet due to the deliberate choice to scale the amplitude lower to not overpower
+  the melody.
+- Even if quiet, the subtleness adds the intended warmth and musical depth to stabilize the harshness of the accompanying melody.
+
+**Percussion** notes actually properly sound like electronic timbres when an ADSR envelope is applied! Notice the constant, repititive
+rhythm of noise playing in the background of complete tracks, e.g.
+[Mario Kart 8 - Wild Woods](code/chiptune-synthesizer/output-wavs/Mario%20Kart%208%20-%20Wild%20Woods.wav).
+This backbone establishes a sense of texture and energy, driving the melody and bassline with a cohesive beat.
+
+#### Favorites
+
+My favorite outputs consist of the full-fledged songs using a variety of instruments, forcing the chiptune synthesizer to apply the
+programmed waveform types with different patterns. The resulting vibrant compositions demonstrate the chiptune synthesizer's abilities
+to simplify modern arrangements to a nostalgiac retro vibe, while retaining the essence of the original MIDI:
+
+- [Super Mario Wonder Snow Theme](code/chiptune-synthesizer/output-wavs/Super%20Mario%20Wonder---%20Snow%20theme.wav), my personal favorite in capturing the song's spirit into a retro aesthetic.
+- [Sonic Unleashed - Endless Possibility](code/chiptune-synthesizer/output-wavs/Sonic%20Unleashed%20-%20Endless%20Possibility.wav)
+- [Mario Kart 8 Deluxe - Animal Crossing (Autumn)](<code/chiptune-synthesizer/output-wavs/Mario%20Kart%208%20Deluxe%20-%20Animal%20Crossing%20(Autumn).wav>)
