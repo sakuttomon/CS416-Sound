@@ -13,6 +13,9 @@ The overall course project I chose to do is a _Chiptune Synthesizer_, which take
 
 - [**_`Chiptune Synthesizer`_**](code/chiptune-synthesizer/)
 
+See the conclusion post containing my thoughts and analysis on the finished project's outputs in the notebook's
+[final entry](notebook.md#12724---chiptune-synthesizer-conclusions).
+
 ## Portfolio Objectives
 
 The following code projects were assigned by the professor as part of the course.
@@ -23,8 +26,8 @@ The following code projects were assigned by the professor as part of the course
 
 ## Self Projects
 
-The following are additional code directories outside of the overall project and portfolio objectives. These programs were a result of
-satisfying my own curiosity and application of concepts that I wanted to experiment with.
+The following are additional code directories outside of the overall project and portfolio objectives.
+These programs stemmed from a desire to satisfy my own curiosity and apply concepts that I wanted to experiment with.
 
 - [_`Spectrogram`_](code/spectrogram-fun/)
 - [_`Piano Note to Frequency`_](code/note-to-frequency/)

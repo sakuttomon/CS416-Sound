@@ -4,6 +4,10 @@ This program takes in a MIDI file, parses note information, and creates a chiptu
 (e.g. square, triangle, sawtooth) based on each instrument and their notes, obtained from the MIDI parsing. The purpose of this project
 is to demonstrate my learnings of sound synthesis while celebrating the retro audio genre I enjoy.
 
+Additional thoughts and reflections learned from working on this project is documented in [`notebook.md`](../../notebook.md) with the
+**Chiptune Synthesizer** header. See the conclusion post examining the resulting chiptune outputs in the notebook's
+[final entry](../../notebook.md/#12724---chiptune-synthesizer-conclusions).
+
 **_Notice_**: The [`pretty_midi`](https://craffel.github.io/pretty-midi/) library used to parse MIDI files' current release (`0.2.10`)
 is incompatible with Python 3.12. This [PR](https://github.com/craffel/pretty-midi/pull/252) addresses the issue, but a new version to
 contain this update has yet to be released. Please keep this inconvenience in mind. I currently run this project in **Python 3.9**.
